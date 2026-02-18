@@ -1,0 +1,2 @@
+# ML model artifacts — tracked via DVC or manual versioning, not git.
+# This .gitkeep ensures the directory exists.

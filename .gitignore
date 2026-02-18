@@ -1,0 +1,62 @@
+# ─── Python ───
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+*.whl
+.venv/
+venv/
+env/
+
+# ─── Node / Next.js ───
+node_modules/
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+.pnp.*
+.yarn/
+
+# ─── Environment ───
+.env
+.env.local
+.env.*.local
+
+# ─── IDE ───
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── OS ───
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Docker ───
+docker/volumes/
+
+# ─── ML artifacts ───
+ml/models/*.onnx
+ml/models/*.pkl
+ml/models/*.joblib
+*.h5
+
+# ─── Data (too large for git) ───
+data/
+*.csv
+*.parquet
+!ml/notebooks/*.csv
+
+# ─── Logs ───
+*.log
+logs/
+
+# ─── Coverage ───
+htmlcov/
+.coverage
+coverage.xml

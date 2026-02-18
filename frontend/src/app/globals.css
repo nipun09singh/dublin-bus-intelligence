@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+/* ─── BusIQ Glass Rail Design System ─── */
+
+:root {
+  /* Glass Panel */
+  --glass-bg: rgba(0, 0, 0, 0.6);
+  --glass-bg-hover: rgba(0, 0, 0, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-active: rgba(255, 255, 255, 0.15);
+  --glass-blur: 20px;
+  --glass-radius: 16px;
+  --glass-radius-nested: 12px;
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+  /* Brand */
+  --busiq-teal: #00808b;
+  --busiq-teal-glow: #00a8b5;
+
+  /* Transport Modes */
+  --mode-bus: #00808b;
+  --mode-luas: #6b2d8b;
+  --mode-dart: #0072ce;
+  --mode-bike: #76b82a;
+  --mode-walk: #8c8c8c;
+
+  /* Semantic Data */
+  --data-cold: #1b3a5c;
+  --data-warm: #d4a843;
+  --data-hot: #c93545;
+  --data-success: #2ecc71;
+  --data-warning: #f39c12;
+  --data-error: #e74c3c;
+
+  /* Crowd Reports */
+  --report-crowding: #3498db;
+  --report-accessibility: #e67e22;
+  --report-positive: #2ecc71;
+
+  /* Text */
+  --text-primary: rgba(255, 255, 255, 0.9);
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-tertiary: rgba(255, 255, 255, 0.35);
+}
+
+@theme inline {
+  --color-background: #000000;
+  --color-foreground: rgba(255, 255, 255, 0.9);
+  --font-sans: var(--font-inter);
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+/* ─── Glass Panel Utility ─── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-active);
+}
+
+.glass-nested {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--glass-radius-nested);
+}
+
+/* ─── Tabular Numerals (counters never jitter) ─── */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Pulse Animation (stop heartbeats, live counters) ─── */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+/* ─── Ripple (crowd reports) ─── */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple 1.5s ease-out forwards;
+}
+
+/* ─── Flow Particles (route arteries) ─── */
+@keyframes flow {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -20;
+  }
+}
+
+/* ─── Mapbox Overrides ─── */
+.mapboxgl-canvas {
+  outline: none;
+}
+
+.mapboxgl-ctrl-bottom-left,
+.mapboxgl-ctrl-bottom-right {
+  display: none;
+}
+
+/* ─── Transition defaults ─── */
+* {
+  transition-timing-function: ease-out;
+}

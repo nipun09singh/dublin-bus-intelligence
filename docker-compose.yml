@@ -1,0 +1,93 @@
+services:
+  # ─── PostgreSQL + PostGIS ───
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: busiq-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-busiq}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-busiq_dev_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-busiq}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U busiq"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ─── Redis ───
+  redis:
+    image: redis:7-alpine
+    container_name: busiq-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ─── FastAPI Backend ───
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: busiq-backend
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-busiq}:${POSTGRES_PASSWORD:-busiq_dev_2026}@postgres:5432/${POSTGRES_DB:-busiq}
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app/backend
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ─── Ingestion Workers ───
+  ingestion:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ingestion
+    container_name: busiq-ingestion
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-busiq}:${POSTGRES_PASSWORD:-busiq_dev_2026}@postgres:5432/${POSTGRES_DB:-busiq}
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./ingestion:/app/ingestion
+    command: python -m ingestion.main
+
+  # ─── Next.js Frontend ───
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: busiq-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN:-}
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/frontend/src
+      - ./frontend/public:/app/frontend/public
+    command: npm run dev
+
+volumes:
+  pgdata:
+    driver: local
