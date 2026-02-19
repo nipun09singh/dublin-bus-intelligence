@@ -4,38 +4,49 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
-from backend.models.schemas import ApiResponse, Meta, VehicleCollection, VehiclePosition
+from backend.core.redis import get_all_vehicles, get_vehicle, get_fleet_timestamp
 
 router = APIRouter()
 
 
-@router.get("", response_model=ApiResponse)
-async def get_all_buses() -> ApiResponse:
+@router.get("")
+async def get_all_buses() -> dict:
     """Return all live bus positions from Redis.
 
     This is the primary data source for the Nerve Centre map.
-    Returns ~1,100 vehicle positions with sub-3s freshness.
+    Returns ~500-1100 vehicle positions with sub-3s freshness.
     """
-    # TODO: Read from Redis live state
-    # Placeholder: return empty collection until ingestion is running
+    vehicles_data = await get_all_vehicles()
     now = datetime.now(timezone.utc)
-    collection = VehicleCollection(vehicles=[], count=0, timestamp=now)
-    return ApiResponse(data=collection, meta=Meta(timestamp=now))
+    fleet_ts = await get_fleet_timestamp()
+
+    return {
+        "data": {
+            "vehicles": vehicles_data,
+            "count": len(vehicles_data),
+            "timestamp": fleet_ts or now.isoformat(),
+        },
+        "meta": {
+            "timestamp": now.isoformat(),
+            "version": "1.0",
+        },
+    }
 
 
-@router.get("/{vehicle_id}", response_model=ApiResponse)
-async def get_bus(vehicle_id: str) -> ApiResponse:
+@router.get("/{vehicle_id}")
+async def get_bus(vehicle_id: str) -> dict:
     """Return a single bus position by vehicle ID."""
-    # TODO: Read from Redis by vehicle_id
+    data = await get_vehicle(vehicle_id)
+    if data is None:
+        raise HTTPException(status_code=404, detail=f"Vehicle {vehicle_id} not found")
+
     now = datetime.now(timezone.utc)
-    # Placeholder: will raise VehicleNotFound when Redis is connected
-    vehicle = VehiclePosition(
-        vehicle_id=vehicle_id,
-        route_id="--",
-        latitude=53.3498,
-        longitude=-6.2603,
-        timestamp=now,
-    )
-    return ApiResponse(data=vehicle, meta=Meta(timestamp=now))
+    return {
+        "data": data,
+        "meta": {
+            "timestamp": now.isoformat(),
+            "version": "1.0",
+        },
+    }

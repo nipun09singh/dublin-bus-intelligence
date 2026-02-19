@@ -445,11 +445,16 @@ CREATE INDEX idx_vp_geom ON vehicle_positions USING GIST (geom);
 
 ## 8. Build Phases
 
-### Phase 0 — Foundation (Current)
+### Phase 0 — Foundation ✅
 - [x] Design document
 - [x] Copilot instructions
-- [ ] Project scaffolding (monorepo structure)
-- [ ] Docker Compose for local dev (Postgres + Redis)
+- [x] UX Architecture (Nerve Centre, Glass Rail, 4 pillar modes, demo choreography)
+- [x] Project scaffolding (monorepo structure)
+- [x] Docker Compose for local dev (Postgres+PostGIS + Redis)
+- [x] FastAPI backend skeleton (v1 routes, schemas, config)
+- [x] Next.js Nerve Centre (Mapbox, PulseRing, PillarRail, VehicleMarkerLayer)
+- [x] Ingestion service skeleton (GTFS-RT poller)
+- [x] Frontend build verified ✓
 - [ ] NTA API key acquisition started
 
 ### Phase 1 — Data Ingestion & Storage

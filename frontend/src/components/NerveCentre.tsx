@@ -3,6 +3,8 @@
 import { useRef, useCallback, useState } from "react";
 import Map, { MapRef, NavigationControl } from "react-map-gl/mapbox";
 import { PillarMode } from "@/lib/types";
+import { useBusStore } from "@/lib/store";
+import { useWebSocket } from "@/hooks/useWebSocket";
 import PulseRing from "@/components/overlays/PulseRing";
 import PillarRail from "@/components/overlays/PillarRail";
 import VehicleMarkerLayer from "@/components/layers/VehicleMarkerLayer";
@@ -17,51 +19,67 @@ const INITIAL_ZOOM = 12;
  * Pillar modes transform layers, not routes.
  */
 export default function NerveCentre() {
-  const mapRef = useRef<MapRef>(null);
-  const [activeMode, setActiveMode] = useState<PillarMode>("data-viz");
-  const [mapLoaded, setMapLoaded] = useState(false);
+    const mapRef = useRef<MapRef>(null);
+    const [activeMode, setActiveMode] = useState<PillarMode>("data-viz");
+    const [mapLoaded, setMapLoaded] = useState(false);
 
-  const handleMapLoad = useCallback(() => {
-    setMapLoaded(true);
-  }, []);
+    // Connect to live WebSocket feed
+    useWebSocket();
+    const busCount = useBusStore((s) => s.vehicles.length);
+    const connected = useBusStore((s) => s.connected);
 
-  return (
-    <div className="relative h-screen w-screen overflow-hidden">
-      {/* ─── The Map Canvas ─── */}
-      <Map
-        ref={mapRef}
-        initialViewState={{
-          ...DUBLIN_CENTER,
-          zoom: INITIAL_ZOOM,
-          pitch: 0,
-          bearing: 0,
-        }}
-        style={{ width: "100%", height: "100%" }}
-        mapStyle="mapbox://styles/mapbox/dark-v11"
-        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-        onLoad={handleMapLoad}
-        attributionControl={false}
-        maxZoom={18}
-        minZoom={10}
-      >
-        <NavigationControl position="top-right" showCompass={false} />
+    const handleMapLoad = useCallback(() => {
+        setMapLoaded(true);
+    }, []);
 
-        {/* ─── Map Layers (z-order matters) ─── */}
-        {mapLoaded && (
-          <>
-            {/* Layer 5: Vehicle markers */}
-            <VehicleMarkerLayer activeMode={activeMode} />
-          </>
-        )}
-      </Map>
+    return (
+        <div className="relative h-screen w-screen overflow-hidden">
+            {/* ─── The Map Canvas ─── */}
+            <Map
+                ref={mapRef}
+                initialViewState={{
+                    ...DUBLIN_CENTER,
+                    zoom: INITIAL_ZOOM,
+                    pitch: 0,
+                    bearing: 0,
+                }}
+                style={{ width: "100%", height: "100%" }}
+                mapStyle="mapbox://styles/mapbox/dark-v11"
+                mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+                onLoad={handleMapLoad}
+                attributionControl={false}
+                maxZoom={18}
+                minZoom={10}
+            >
+                <NavigationControl position="top-right" showCompass={false} />
 
-      {/* ─── Glass Overlays (HTML over map) ─── */}
+                {/* ─── Map Layers (z-order matters) ─── */}
+                {mapLoaded && (
+                    <>
+                        {/* Layer 5: Vehicle markers */}
+                        <VehicleMarkerLayer activeMode={activeMode} />
+                    </>
+                )}
+            </Map>
 
-      {/* Top-left: Pulse Ring — live fleet counter */}
-      <PulseRing busCount={0} />
+            {/* ─── Glass Overlays (HTML over map) ─── */}
 
-      {/* Bottom: Pillar Rail — mode switcher */}
-      <PillarRail activeMode={activeMode} onModeChange={setActiveMode} />
-    </div>
-  );
+            {/* Top-left: Pulse Ring — live fleet counter */}
+            <PulseRing busCount={busCount} />
+
+            {/* Connection status indicator */}
+            <div className="absolute top-4 right-16 z-30 flex items-center gap-2">
+                <div
+                    className={`h-2 w-2 rounded-full ${connected ? "bg-emerald-400 animate-pulse" : "bg-red-400"
+                        }`}
+                />
+                <span className="text-xs text-white/50 font-mono">
+                    {connected ? "LIVE" : "CONNECTING"}
+                </span>
+            </div>
+
+            {/* Bottom: Pillar Rail — mode switcher */}
+            <PillarRail activeMode={activeMode} onModeChange={setActiveMode} />
+        </div>
+    );
 }

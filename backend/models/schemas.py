@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -41,6 +42,7 @@ class VehiclePosition(BaseModel):
 
     vehicle_id: str
     route_id: str
+    route_short_name: str = ""
     trip_id: str | None = None
     latitude: float
     longitude: float
@@ -53,6 +55,7 @@ class VehiclePosition(BaseModel):
     model_config = {"json_schema_extra": {"example": {
         "vehicle_id": "33017",
         "route_id": "39A",
+        "route_short_name": "39A",
         "trip_id": "39A_20260218_0830",
         "latitude": 53.3498,
         "longitude": -6.2603,
@@ -85,6 +88,8 @@ class PredictionRequest(BaseModel):
 
 class PredictionResponse(BaseModel):
     """Predicted arrival with confidence and comparison to official."""
+
+    model_config = {"protected_namespaces": ()}
 
     stop_id: str
     route_id: str
@@ -129,5 +134,7 @@ class Meta(BaseModel):
 class ApiResponse(BaseModel):
     """Standard response envelope per API design rules."""
 
-    data: dict | list | BaseModel
+    model_config = {"arbitrary_types_allowed": True}
+
+    data: Any
     meta: Meta
