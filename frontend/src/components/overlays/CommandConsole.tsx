@@ -131,13 +131,13 @@ export default function CommandConsole({
 
     return (
         <motion.div
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="absolute top-4 sm:top-6 right-4 sm:right-6 z-40 w-72 sm:w-80"
-            style={{ maxHeight: "calc(100vh - 120px)" }}
+            className="absolute top-44 sm:top-48 left-4 sm:left-6 z-40 w-72 sm:w-80"
+            style={{ maxHeight: "calc(100vh - 230px)" }}
         >
-            <div className="glass p-3 flex flex-col" style={{ maxHeight: "calc(100vh - 120px)" }}>
+            <div className="glass p-3 flex flex-col" style={{ maxHeight: "calc(100vh - 230px)" }}>
                 {/* Header */}
                 <button
                     onClick={() => setExpanded(!expanded)}

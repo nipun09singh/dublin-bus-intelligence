@@ -15,6 +15,7 @@ import json
 
 import structlog
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from starlette.websockets import WebSocketState
 
 from backend.core.redis import CHANNEL, get_all_vehicles, get_fleet_timestamp, get_redis
 
@@ -66,11 +67,13 @@ async def _stream_via_pubsub(ws: WebSocket) -> None:
                 data = msg["data"]
                 if isinstance(data, bytes):
                     data = data.decode("utf-8")
+                if ws.application_state != WebSocketState.CONNECTED:
+                    break
                 await ws.send_text(data)
             else:
                 await asyncio.sleep(0.1)
-    except WebSocketDisconnect:
-        logger.info("ws.disconnected")
+    except (WebSocketDisconnect, Exception) as exc:
+        logger.info("ws.disconnected", reason=type(exc).__name__)
     finally:
         await pubsub.unsubscribe(CHANNEL)
         await pubsub.close()
@@ -86,13 +89,13 @@ async def _stream_via_polling(ws: WebSocket) -> None:
             if ts and ts != last_ts:
                 last_ts = ts
                 vehicles = await get_all_vehicles()
+                if ws.application_state != WebSocketState.CONNECTED:
+                    break
                 await ws.send_json({
                     "type": "snapshot",
                     "vehicles": vehicles,
                     "timestamp": ts,
                     "count": len(vehicles),
                 })
-    except WebSocketDisconnect:
-        logger.info("ws.disconnected")
-    except Exception:
-        logger.exception("ws.polling_error")
+    except (WebSocketDisconnect, Exception) as exc:
+        logger.info("ws.disconnected", reason=type(exc).__name__)

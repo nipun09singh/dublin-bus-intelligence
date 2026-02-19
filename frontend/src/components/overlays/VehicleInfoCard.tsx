@@ -42,139 +42,139 @@ export default function VehicleInfoCard() {
     return (
         <AnimatePresence>
             {vehicle && (
-            <motion.div
-                key={vehicle.vehicle_id}
-                initial={{ opacity: 0, x: 20, scale: 0.95 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: 20, scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                className="absolute top-16 right-4 sm:top-20 sm:right-6 z-50 w-64 sm:w-72"
-            >
-                <div className="glass p-4">
-                    {/* Header: Route + Close */}
-                    <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                            {/* Route badge */}
-                            <div
-                                className="flex items-center justify-center w-12 h-12 rounded-xl font-bold text-lg"
+                <motion.div
+                    key={vehicle.vehicle_id}
+                    initial={{ opacity: 0, x: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: 20, scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="absolute top-16 right-4 sm:top-20 sm:right-6 z-50 w-64 sm:w-72"
+                >
+                    <div className="glass p-4">
+                        {/* Header: Route + Close */}
+                        <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                                {/* Route badge */}
+                                <div
+                                    className="flex items-center justify-center w-12 h-12 rounded-xl font-bold text-lg"
+                                    style={{
+                                        background: "rgba(0, 168, 181, 0.15)",
+                                        border: "1px solid rgba(0, 168, 181, 0.3)",
+                                        color: "#00A8B5",
+                                    }}
+                                >
+                                    {vehicle.route_short_name || "?"}
+                                </div>
+                                <div>
+                                    <div
+                                        className="text-sm font-semibold"
+                                        style={{ color: "var(--text-primary)" }}
+                                    >
+                                        Route {vehicle.route_short_name || vehicle.route_id}
+                                    </div>
+                                    <div
+                                        className="text-xs"
+                                        style={{ color: "var(--text-tertiary)" }}
+                                    >
+                                        Bus #{vehicle.vehicle_id}
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => selectVehicle(null)}
+                                className="flex items-center justify-center w-7 h-7 rounded-lg transition-colors"
                                 style={{
-                                    background: "rgba(0, 168, 181, 0.15)",
-                                    border: "1px solid rgba(0, 168, 181, 0.3)",
-                                    color: "#00A8B5",
+                                    background: "rgba(255,255,255,0.06)",
+                                    color: "var(--text-secondary)",
                                 }}
                             >
-                                {vehicle.route_short_name || "?"}
-                            </div>
-                            <div>
-                                <div
-                                    className="text-sm font-semibold"
-                                    style={{ color: "var(--text-primary)" }}
-                                >
-                                    Route {vehicle.route_short_name || vehicle.route_id}
-                                </div>
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Status bar */}
+                        <div
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl mb-3"
+                            style={{
+                                background: `${statusColor}15`,
+                                border: `1px solid ${statusColor}30`,
+                            }}
+                        >
+                            <div
+                                className="w-2 h-2 rounded-full"
+                                style={{ background: statusColor }}
+                            />
+                            <span
+                                className="text-xs font-semibold tracking-wider"
+                                style={{ color: statusColor }}
+                            >
+                                {statusLabel}
+                            </span>
+                            <span
+                                className="text-xs ml-auto"
+                                style={{ color: "var(--text-secondary)" }}
+                            >
+                                {formatDelay(vehicle.delay_seconds)}
+                            </span>
+                        </div>
+
+                        {/* Stats grid */}
+                        <div className="grid grid-cols-3 gap-2">
+                            <StatCell
+                                label="SPEED"
+                                value={
+                                    vehicle.speed_kmh != null
+                                        ? `${Math.round(vehicle.speed_kmh)}`
+                                        : "—"
+                                }
+                                unit="km/h"
+                            />
+                            <StatCell
+                                label="DELAY"
+                                value={
+                                    vehicle.delay_seconds !== 0
+                                        ? `${Math.round(vehicle.delay_seconds / 60)}`
+                                        : "0"
+                                }
+                                unit="min"
+                            />
+                            <StatCell label="DATA AGE" value={ageDisplay} />
+                        </div>
+
+                        {/* Bearing indicator */}
+                        {vehicle.bearing != null && (
+                            <div
+                                className="flex items-center gap-2 mt-3 pt-3"
+                                style={{
+                                    borderTop: "1px solid rgba(255,255,255,0.06)",
+                                }}
+                            >
                                 <div
                                     className="text-xs"
                                     style={{ color: "var(--text-tertiary)" }}
                                 >
-                                    Bus #{vehicle.vehicle_id}
+                                    HEADING
                                 </div>
+                                <div
+                                    className="text-xs font-mono"
+                                    style={{
+                                        color: "var(--text-secondary)",
+                                        transform: `rotate(${vehicle.bearing}deg)`,
+                                        display: "inline-block",
+                                    }}
+                                >
+                                    ↑
+                                </div>
+                                <span
+                                    className="text-xs tabular-nums"
+                                    style={{ color: "var(--text-secondary)" }}
+                                >
+                                    {Math.round(vehicle.bearing)}°
+                                </span>
                             </div>
-                        </div>
-                        <button
-                            onClick={() => selectVehicle(null)}
-                            className="flex items-center justify-center w-7 h-7 rounded-lg transition-colors"
-                            style={{
-                                background: "rgba(255,255,255,0.06)",
-                                color: "var(--text-secondary)",
-                            }}
-                        >
-                            ✕
-                        </button>
+                        )}
                     </div>
-
-                    {/* Status bar */}
-                    <div
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl mb-3"
-                        style={{
-                            background: `${statusColor}15`,
-                            border: `1px solid ${statusColor}30`,
-                        }}
-                    >
-                        <div
-                            className="w-2 h-2 rounded-full"
-                            style={{ background: statusColor }}
-                        />
-                        <span
-                            className="text-xs font-semibold tracking-wider"
-                            style={{ color: statusColor }}
-                        >
-                            {statusLabel}
-                        </span>
-                        <span
-                            className="text-xs ml-auto"
-                            style={{ color: "var(--text-secondary)" }}
-                        >
-                            {formatDelay(vehicle.delay_seconds)}
-                        </span>
-                    </div>
-
-                    {/* Stats grid */}
-                    <div className="grid grid-cols-3 gap-2">
-                        <StatCell
-                            label="SPEED"
-                            value={
-                                vehicle.speed_kmh != null
-                                    ? `${Math.round(vehicle.speed_kmh)}`
-                                    : "—"
-                            }
-                            unit="km/h"
-                        />
-                        <StatCell
-                            label="DELAY"
-                            value={
-                                vehicle.delay_seconds !== 0
-                                    ? `${Math.round(vehicle.delay_seconds / 60)}`
-                                    : "0"
-                            }
-                            unit="min"
-                        />
-                        <StatCell label="DATA AGE" value={ageDisplay} />
-                    </div>
-
-                    {/* Bearing indicator */}
-                    {vehicle.bearing != null && (
-                        <div
-                            className="flex items-center gap-2 mt-3 pt-3"
-                            style={{
-                                borderTop: "1px solid rgba(255,255,255,0.06)",
-                            }}
-                        >
-                            <div
-                                className="text-xs"
-                                style={{ color: "var(--text-tertiary)" }}
-                            >
-                                HEADING
-                            </div>
-                            <div
-                                className="text-xs font-mono"
-                                style={{
-                                    color: "var(--text-secondary)",
-                                    transform: `rotate(${vehicle.bearing}deg)`,
-                                    display: "inline-block",
-                                }}
-                            >
-                                ↑
-                            </div>
-                            <span
-                                className="text-xs tabular-nums"
-                                style={{ color: "var(--text-secondary)" }}
-                            >
-                                {Math.round(vehicle.bearing)}°
-                            </span>
-                        </div>
-                    )}
-                </div>
-            </motion.div>
+                </motion.div>
             )}
         </AnimatePresence>
     );

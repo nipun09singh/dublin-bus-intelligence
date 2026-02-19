@@ -264,7 +264,16 @@ async def calculate_network_health() -> NetworkHealthReport:
         else:
             r_score = 0
 
-        route_name = gtfs_static.get_route_name(rid)
+        # Prefer the already-resolved route name from vehicle data
+        # (resolved via trip_id lookup during ingestion — higher success rate)
+        route_name = ""
+        for v in rvehicles:
+            rsn = v.get("route_short_name", "")
+            if rsn and rsn != rid:
+                route_name = rsn
+                break
+        if not route_name:
+            route_name = gtfs_static.get_route_name(rid)
         route_healths.append(RouteHealth(
             route_id=rid,
             route_name=route_name,

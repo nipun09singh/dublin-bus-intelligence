@@ -19,9 +19,9 @@ import structlog
 
 logger = structlog.get_logger()
 
-# NTA GTFS static feeds
+# NTA GTFS static feeds — combined feed covers all operators (Dublin Bus, Bus Éireann, Go-Ahead)
 GTFS_URLS = [
-    "https://www.transportforireland.ie/transitData/Data/GTFS_Dublin_Bus.zip",
+    "https://www.transportforireland.ie/transitData/Data/GTFS_Realtime.zip",
 ]
 
 
@@ -41,6 +41,8 @@ class GtfsStaticLoader:
         self.trip_shape_map: dict[str, str] = {}
         # route_id → set of shape_ids (via trips)
         self.route_shapes: dict[str, set[str]] = {}
+        # route_id → set of stop_ids served by that route
+        self.route_stops: dict[str, set[str]] = {}
 
     async def load(self, urls: list[str] | None = None) -> None:
         """Download and parse GTFS static data from all operators."""
@@ -57,6 +59,7 @@ class GtfsStaticLoader:
                     self._parse_routes(zf)
                     self._parse_trips(zf)
                     self._parse_stops(zf)
+                    self._parse_stop_times(zf)
                     self._parse_shapes(zf)
                     self._build_route_shapes()
                     logger.info(
@@ -121,6 +124,29 @@ class GtfsStaticLoader:
         except KeyError:
             logger.warning("gtfs_static.no_stops_txt")
 
+    def _parse_stop_times(self, zf: zipfile.ZipFile) -> None:
+        """Parse stop_times.txt → build route_id to set[stop_id] mapping.
+
+        Uses trip_route_map (from trips.txt) to map trip → route,
+        then collects all stop_ids served by each route.
+        """
+        try:
+            with zf.open("stop_times.txt") as f:
+                reader = csv.DictReader(io.TextIOWrapper(f, encoding="utf-8-sig"))
+                for row in reader:
+                    tid = row.get("trip_id", "").strip()
+                    sid = row.get("stop_id", "").strip()
+                    if tid and sid:
+                        rid = self.trip_route_map.get(tid, "")
+                        if rid:
+                            self.route_stops.setdefault(rid, set()).add(sid)
+            logger.info(
+                "gtfs_static.route_stops_built",
+                routes_with_stops=len(self.route_stops),
+            )
+        except KeyError:
+            logger.warning("gtfs_static.no_stop_times_txt")
+
     def _parse_shapes(self, zf: zipfile.ZipFile) -> None:
         """Parse shapes.txt → shape_id to ordered list of (lat, lon)."""
         try:
@@ -166,15 +192,11 @@ class GtfsStaticLoader:
         if route_id in self.route_map:
             return self.route_map[route_id]
 
-        # Fallback: some feeds use trip_id-style route IDs
-        # Try extracting after underscore
-        parts = route_id.split("_")
-        if len(parts) >= 2:
-            # Try the first part as an agency-prefixed route
-            for rid, name in self.route_map.items():
-                if rid.startswith(parts[0] + "_"):
-                    # Same agency — can't determine exact route from prefix alone
-                    pass
+        # Fallback: try resolving via trip_route_map (trip may reference
+        # a different version of the route_id that IS in route_map)
+        for tid, rid in self.trip_route_map.items():
+            if rid == route_id and rid in self.route_map:
+                return self.route_map[rid]
 
         return route_id  # Return raw ID if no mapping found
 

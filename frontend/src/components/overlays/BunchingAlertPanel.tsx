@@ -79,10 +79,10 @@ export default function BunchingAlertPanel() {
 
     return (
         <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 30, delay: 0.1 }}
-            className="absolute top-64 sm:top-72 left-4 sm:left-6 z-40 w-56 sm:w-64"
+            className="absolute top-[28rem] right-4 sm:right-6 z-40 w-56 sm:w-64"
         >
             <div className="glass p-3">
                 {/* Header */}

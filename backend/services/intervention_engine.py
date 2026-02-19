@@ -156,11 +156,29 @@ def _find_nearest_stop(lat: float, lon: float, route_id: str | None = None) -> d
     """Find the nearest bus stop, optionally filtered by route."""
     best = None
     best_dist = float("inf")
+
+    # If route_id is provided and we have stop data for that route,
+    # restrict search to only stops served by this route.
+    candidate_stop_ids: set[str] | None = None
+    if route_id:
+        candidate_stop_ids = gtfs_static.route_stops.get(route_id)
+
     for stop_id, (name, slat, slon) in gtfs_static.stop_map.items():
+        if candidate_stop_ids is not None and stop_id not in candidate_stop_ids:
+            continue
         d = _haversine_m(lat, lon, slat, slon)
         if d < best_dist:
             best_dist = d
             best = {"stop_id": stop_id, "name": name, "lat": slat, "lon": slon, "distance_m": round(d)}
+
+    # Fallback: if route-filtered search found nothing, search all stops
+    if best is None and candidate_stop_ids is not None:
+        for stop_id, (name, slat, slon) in gtfs_static.stop_map.items():
+            d = _haversine_m(lat, lon, slat, slon)
+            if d < best_dist:
+                best_dist = d
+                best = {"stop_id": stop_id, "name": name, "lat": slat, "lon": slon, "distance_m": round(d)}
+
     return best
 
 
@@ -201,8 +219,8 @@ def _generate_hold_interventions(bunching: BunchingReport) -> list[Intervention]
             hold_lat = pair.vehicle_b_lat
             hold_lon = pair.vehicle_b_lon
 
-            # Find nearest stop for the hold
-            nearest = _find_nearest_stop(hold_lat, hold_lon)
+            # Find nearest stop on this route for the hold
+            nearest = _find_nearest_stop(hold_lat, hold_lon, route_id=pair.route_id)
             stop_name = nearest["name"] if nearest else "next stop"
 
             # Compute hold time: target headway = 10 min, current gap ≈ distance/speed

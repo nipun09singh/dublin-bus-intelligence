@@ -28,10 +28,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from backend.services.ingestion import start_background_ingestion
     ingestion_task = await start_background_ingestion()
 
+    # Start stats collector (snapshots every 5 min for historical analysis)
+    from backend.services.stats_collector import start_stats_collector
+    stats_task = await start_stats_collector()
+
     yield
 
     logger.info("busiq.shutdown")
     ingestion_task.cancel()
+    stats_task.cancel()
     try:
         await ingestion_task
     except Exception:
@@ -64,3 +69,13 @@ app.include_router(api_router, prefix="/api/v1")
 async def healthz() -> dict[str, str]:
     """Health check endpoint."""
     return {"status": "ok", "service": "busiq"}
+
+
+@app.get("/api/v1/insights")
+async def insights():
+    """Return aggregated stats for the BusIQ Insights page."""
+    from backend.services.stats_collector import get_stats_summary, collect_stats_snapshot
+    summary = get_stats_summary()
+    # Also include a live snapshot for current state
+    live = await collect_stats_snapshot()
+    return {"summary": summary, "live": live}
