@@ -218,7 +218,19 @@ async def _plan_bus_route(
             d = _haversine(vlat, vlon, origin_stop["lat"], origin_stop["lon"])
             if d < min_dist and d < 5.0:
                 min_dist = d
-                best_route = vdata.get("route_short_name", vdata.get("route_id", "Bus"))
+                # Resolve human-readable route name via GTFS static
+                raw_name = vdata.get("route_short_name", "")
+                raw_id = vdata.get("route_id", "")
+                # If route_short_name looks like an internal ID (contains "_"), resolve it
+                if "_" in raw_name and raw_id:
+                    resolved = gtfs_static.get_route_name(raw_id)
+                    best_route = resolved if resolved != raw_id else raw_name
+                elif raw_name:
+                    best_route = raw_name
+                elif raw_id:
+                    best_route = gtfs_static.get_route_name(raw_id)
+                else:
+                    best_route = "Bus"
                 best_vehicle = vdata
         except (ValueError, TypeError):
             continue

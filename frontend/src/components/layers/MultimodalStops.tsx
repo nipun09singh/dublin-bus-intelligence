@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Source, Layer } from "react-map-gl/mapbox";
 import type { CircleLayerSpecification, SymbolLayerSpecification } from "mapbox-gl";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 /**
  * MultimodalStops — Luas, DART, and Dublin Bikes stations on the map.
@@ -27,7 +27,7 @@ export default function MultimodalStops() {
         async function loadStops() {
             try {
                 const resp = await fetch(
-                    `${API_URL}/api/v1/journey/stops`
+                    `${API_URL}/journey/stops`
                 );
                 if (!resp.ok) return;
                 const data = await resp.json();

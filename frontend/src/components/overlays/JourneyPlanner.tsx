@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 /** Mode colours from design doc Section 5.1.4 */
 const MODE_COLOURS: Record<string, string> = {
@@ -90,7 +90,7 @@ export default function JourneyPlanner({
             const origin = PRESET_LOCATIONS[originIdx];
             const dest = PRESET_LOCATIONS[destIdx];
 
-            const resp = await fetch(`${API_URL}/api/v1/journey/plan`, {
+            const resp = await fetch(`${API_URL}/journey/plan`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -102,6 +102,10 @@ export default function JourneyPlanner({
                     dest_name: dest.name,
                 }),
             });
+            if (!resp.ok) {
+                const errText = await resp.text().catch(() => "");
+                throw new Error(`API error ${resp.status}: ${errText}`);
+            }
             const json = await resp.json();
             const journeyOptions: JourneyOption[] = json.data || [];
             setOptions(journeyOptions);
@@ -245,8 +249,8 @@ export default function JourneyPlanner({
                             key={idx}
                             onClick={() => handleSelectOption(idx)}
                             className={`w-full text-left glass rounded-xl p-3 transition-all duration-300 ${selectedOption === idx
-                                    ? "ring-1 ring-white/30 scale-[1.02]"
-                                    : "opacity-60 hover:opacity-80"
+                                ? "ring-1 ring-white/30 scale-[1.02]"
+                                : "opacity-60 hover:opacity-80"
                                 }`}
                         >
                             {/* Option header */}
