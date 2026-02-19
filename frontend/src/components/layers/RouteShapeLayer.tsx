@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { Source, Layer } from "react-map-gl/mapbox";
+import { useEffect, useRef, useCallback } from "react";
+import { Source, Layer, useMap } from "react-map-gl/mapbox";
 import type { LinePaint } from "mapbox-gl";
 import { useBusStore } from "@/lib/store";
 
@@ -25,6 +25,9 @@ export default function RouteShapeLayer() {
     const shapesLoaded = useBusStore((s) => s.shapesLoaded);
     const setRouteShapes = useBusStore((s) => s.setRouteShapes);
     const activeRouteId = useBusStore((s) => s.activeRouteId);
+    const { current: mapInstance } = useMap();
+    const animFrameRef = useRef<number>(0);
+    const dashOffsetRef = useRef(0);
 
     // Fetch shapes on mount
     useEffect(() => {
@@ -43,6 +46,34 @@ export default function RouteShapeLayer() {
 
         fetchShapes();
     }, [shapesLoaded, setRouteShapes]);
+
+    // Animate flow particles on active route via line-dasharray manipulation
+    const animateFlow = useCallback(() => {
+        if (!mapInstance) return;
+        const map = mapInstance.getMap();
+        if (!map || !map.getLayer("route-flow-particles")) return;
+
+        dashOffsetRef.current = (dashOffsetRef.current + 0.4) % 20;
+        // Shift dash pattern to simulate flowing particles
+        const phase = dashOffsetRef.current;
+        const dashLen = 2 + Math.sin(phase * 0.3) * 0.5;
+        const gapLen = 18 - dashLen;
+        map.setPaintProperty("route-flow-particles", "line-dasharray", [
+            dashLen,
+            gapLen,
+        ]);
+
+        animFrameRef.current = requestAnimationFrame(animateFlow);
+    }, [mapInstance]);
+
+    useEffect(() => {
+        if (activeRouteId && mapInstance) {
+            animFrameRef.current = requestAnimationFrame(animateFlow);
+        }
+        return () => {
+            if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+        };
+    }, [activeRouteId, mapInstance, animateFlow]);
 
     const data = routeShapes || EMPTY_GEOJSON;
 
@@ -76,6 +107,19 @@ export default function RouteShapeLayer() {
         ],
     };
 
+    // Flow particle paint — animated dashes on active route
+    const flowParticlePaint: LinePaint = {
+        "line-color": "rgba(0, 220, 235, 0.7)",
+        "line-width": 2,
+        "line-dasharray": [2, 18],
+        "line-opacity": [
+            "case",
+            ["==", ["get", "route_id"], activeRouteId || ""],
+            1,
+            0,
+        ],
+    };
+
     return (
         <Source id="route-shapes" type="geojson" data={data}>
             {/* Glow underneath (only visible for active route) */}
@@ -91,6 +135,14 @@ export default function RouteShapeLayer() {
                 id="route-lines"
                 type="line"
                 paint={routeLinePaint}
+                layout={{ "line-cap": "round", "line-join": "round" }}
+                beforeId="vehicle-glow"
+            />
+            {/* Flow particles — animated dashes showing direction on active route */}
+            <Layer
+                id="route-flow-particles"
+                type="line"
+                paint={flowParticlePaint}
                 layout={{ "line-cap": "round", "line-join": "round" }}
                 beforeId="vehicle-glow"
             />

@@ -49,7 +49,7 @@ export default function VehicleInfoCard() {
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 20, scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                className="absolute top-20 right-6 z-50 w-72"
+                className="absolute top-16 right-4 sm:top-20 sm:right-6 z-50 w-64 sm:w-72"
             >
                 <div className="glass p-4">
                     {/* Header: Route + Close */}

@@ -20,16 +20,16 @@ export default function PillarRail({ activeMode, onModeChange }: PillarRailProps
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
-            className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50"
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] sm:w-auto sm:bottom-6"
         >
-            <div className="glass flex items-center gap-1 px-2 py-2">
+            <div className="glass flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-2 overflow-x-auto">
                 {PILLARS.map((pillar) => {
                     const isActive = activeMode === pillar.id;
                     return (
                         <button
                             key={pillar.id}
                             onClick={() => onModeChange(pillar.id)}
-                            className="relative flex flex-col items-center gap-1.5 px-5 py-2.5 rounded-xl transition-all duration-200"
+                            className="relative flex flex-col items-center gap-1 sm:gap-1.5 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl transition-all duration-200 min-w-0 flex-shrink-0"
                             style={{
                                 background: isActive ? "rgba(255, 255, 255, 0.06)" : "transparent",
                             }}
@@ -51,7 +51,7 @@ export default function PillarRail({ activeMode, onModeChange }: PillarRailProps
 
                             {/* Label */}
                             <span
-                                className="text-xs font-semibold tracking-wider whitespace-nowrap transition-colors duration-200"
+                                className="text-[10px] sm:text-xs font-semibold tracking-wider whitespace-nowrap transition-colors duration-200"
                                 style={{
                                     color: isActive ? "var(--text-primary)" : "var(--text-tertiary)",
                                 }}

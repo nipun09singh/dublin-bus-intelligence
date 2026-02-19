@@ -2,15 +2,18 @@
 
 import { useRef, useCallback, useState } from "react";
 import Map, { MapRef, NavigationControl } from "react-map-gl/mapbox";
-import type { MapLayerMouseEvent } from "react-map-gl/mapbox";
+import type { MapMouseEvent } from "react-map-gl/mapbox";
 import { PillarMode } from "@/lib/types";
 import { useBusStore } from "@/lib/store";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import PulseRing from "@/components/overlays/PulseRing";
 import PillarRail from "@/components/overlays/PillarRail";
 import VehicleInfoCard from "@/components/overlays/VehicleInfoCard";
+import RouteHoverCard from "@/components/overlays/RouteHoverCard";
+import CrowdReportPanel from "@/components/overlays/CrowdReportPanel";
 import VehicleMarkerLayer from "@/components/layers/VehicleMarkerLayer";
 import RouteShapeLayer from "@/components/layers/RouteShapeLayer";
+import StopLayer from "@/components/layers/StopLayer";
 import GhostBusLayer from "@/components/layers/GhostBusLayer";
 import BunchingLayer from "@/components/layers/BunchingLayer";
 
@@ -41,7 +44,7 @@ export default function NerveCentre() {
 
     // Click handler: select vehicle or deselect
     const handleMapClick = useCallback(
-        (e: MapLayerMouseEvent) => {
+        (e: MapMouseEvent) => {
             // Check if we clicked on a vehicle marker
             if (e.features && e.features.length > 0) {
                 const vehicleId = e.features[0].properties?.vehicle_id;
@@ -65,7 +68,41 @@ export default function NerveCentre() {
     // Cursor changes to pointer over interactive layers
     const [cursor, setCursor] = useState("grab");
     const handleMouseEnter = useCallback(() => setCursor("pointer"), []);
-    const handleMouseLeave = useCallback(() => setCursor("grab"), []);
+    const handleMouseLeave = useCallback(() => {
+        setCursor("grab");
+        setHoveredRoute(null);
+    }, []);
+
+    // Route hover state
+    const [hoveredRoute, setHoveredRoute] = useState<{
+        routeId: string;
+        routeName: string;
+        x: number;
+        y: number;
+    } | null>(null);
+
+    // Handle mouse move for route hover cards
+    const handleMouseMove = useCallback((e: MapMouseEvent) => {
+        if (e.features && e.features.length > 0) {
+            const feature = e.features[0];
+            // Check if it's a route line (not a vehicle marker)
+            if (feature.layer?.id === "route-lines") {
+                const routeId = feature.properties?.route_id;
+                const routeName = feature.properties?.route_short_name;
+                if (routeId) {
+                    setHoveredRoute({
+                        routeId,
+                        routeName: routeName || routeId,
+                        x: e.point.x,
+                        y: e.point.y,
+                    });
+                    setCursor("pointer");
+                    return;
+                }
+            }
+        }
+        setHoveredRoute(null);
+    }, []);
 
     // Format last update time
     const updateAge = lastUpdate
@@ -88,10 +125,11 @@ export default function NerveCentre() {
                 mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
                 onLoad={handleMapLoad}
                 onClick={handleMapClick}
+                onMouseMove={handleMouseMove}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
                 cursor={cursor}
-                interactiveLayerIds={["vehicle-markers"]}
+                interactiveLayerIds={["vehicle-markers", "route-lines"]}
                 attributionControl={false}
                 maxZoom={18}
                 minZoom={10}
@@ -101,6 +139,9 @@ export default function NerveCentre() {
                 {/* ─── Map Layers (z-order matters) ─── */}
                 {mapLoaded && (
                     <>
+                        {/* Layer 1: Stop heartbeat dots (high zoom only) */}
+                        <StopLayer />
+
                         {/* Layer 2: Route shape arteries (always shown) */}
                         <RouteShapeLayer />
 
@@ -124,8 +165,19 @@ export default function NerveCentre() {
             {/* Top-right: Vehicle info card (when selected) */}
             <VehicleInfoCard />
 
+            {/* Route hover card (follows cursor on route lines) */}
+            <RouteHoverCard
+                routeId={hoveredRoute?.routeId ?? null}
+                routeName={hoveredRoute?.routeName ?? null}
+                x={hoveredRoute?.x ?? 0}
+                y={hoveredRoute?.y ?? 0}
+            />
+
+            {/* Collaboration: Crowd report panel (collab mode + selected bus) */}
+            {activeMode === "collab" && <CrowdReportPanel />}
+
             {/* Connection status indicator */}
-            <div className="absolute top-6 right-6 z-30 flex items-center gap-2">
+            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2">
                 <div className="glass px-3 py-2 flex items-center gap-2">
                     <div
                         className={`h-2 w-2 rounded-full ${connected

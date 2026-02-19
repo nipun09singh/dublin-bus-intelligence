@@ -481,15 +481,15 @@ CREATE INDEX idx_vp_geom ON vehicle_positions USING GIST (geom);
 - [x] Bunching detection layer (same-route proximity, optimise mode)
 - [x] Pillar mode switching (layers toggle per mode)
 - [x] Connection status indicator (glass panel)
-- [ ] Route arteries with flow particle animation
-- [ ] Stop heartbeat pulse on arrivals
-- [ ] Data & Viz: demand thermal heatmap + time scrubber
-- [ ] Data & Viz: route hover cards + stop radial timeline
-- [ ] Optimisation: split-screen time machine
-- [ ] Collaboration: ripple effect for crowd reports + one-tap UI
-- [ ] Smart Cities: multimodal journey ribbon + carbon badge
-- [ ] Responsive: desktop Nerve Centre → mobile bottom sheet
-- [ ] Demo sequence choreography (scripted 3-min walkthrough)
+- [x] Route arteries with flow particle animation
+- [x] Stop heartbeat pulse layer (zoom ≥14, glow + labels)
+- [ ] Data & Viz: demand thermal heatmap + time scrubber *(deferred → Phase 3, needs historical data)*
+- [x] Data & Viz: route hover cards (route stats on hover)
+- [ ] Optimisation: split-screen time machine *(deferred → Phase 3, needs historical data)*
+- [x] Collaboration: ripple effect for crowd reports + one-tap UI
+- [ ] Smart Cities: multimodal journey ribbon + carbon badge *(deferred → Phase 5, needs Luas/DART APIs)*
+- [x] Responsive: desktop Nerve Centre → mobile bottom sheet
+- [ ] Demo sequence choreography (scripted 3-min walkthrough) *(deferred → Phase 6)*
 
 ### Phase 3 — Predictive Engine
 - [ ] Feature engineering pipeline (time, weather, day-type, stop sequence, historical delay)

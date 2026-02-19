@@ -47,9 +47,9 @@ export default function PulseRing({ busCount }: { busCount: number }) {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="absolute top-6 left-6 z-50"
+            className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50"
         >
-            <div className="glass p-4">
+            <div className="glass p-3 sm:p-4">
                 {/* Main counter row */}
                 <div className="flex items-center gap-3 mb-3">
                     {/* Animated pulse ring */}
@@ -72,7 +72,7 @@ export default function PulseRing({ busCount }: { busCount: number }) {
                     {/* Bus count */}
                     <div className="flex flex-col">
                         <span
-                            className="tabular-nums text-2xl font-bold leading-tight"
+                            className="tabular-nums text-xl sm:text-2xl font-bold leading-tight"
                             style={{ color: "var(--text-primary)" }}
                         >
                             {busCount.toLocaleString()}
