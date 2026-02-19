@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useCallback, useState } from "react";
+import Link from "next/link";
 import Map, { MapRef, NavigationControl } from "react-map-gl/mapbox";
 import type { MapMouseEvent } from "react-map-gl/mapbox";
 import { PillarMode } from "@/lib/types";
@@ -298,8 +299,16 @@ export default function NerveCentre() {
                 />
             )}
 
-            {/* Connection status indicator + Demo button */}
+            {/* Connection status indicator + Demo button + Insights link */}
             <div className={`absolute ${activeMode === "optimise" ? "top-4 left-1/2 -translate-x-1/2" : "top-4 right-4 sm:top-6 sm:right-6"} z-30 flex items-center gap-2`}>
+                <Link
+                    href="/insights"
+                    className="glass px-3 py-2 flex items-center gap-2 hover:border-cyan-400/40 transition-colors"
+                    title="Open BusIQ Insights dashboard"
+                >
+                    <span className="text-xs">📊</span>
+                    <span className="text-[10px] font-semibold tracking-wider" style={{ color: "var(--text-secondary)" }}>INSIGHTS</span>
+                </Link>
                 {!demoActive && (
                     <button
                         onClick={() => setDemoActive(true)}

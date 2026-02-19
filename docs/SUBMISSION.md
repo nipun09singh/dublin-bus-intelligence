@@ -33,10 +33,12 @@ BusIQ closes this gap. It doesn't just show the problem — it tells you what to
 Dublin Bus has data. What it lacks is an **intelligence layer** that converts that data into decisions.
 
 Current pain points our prototype has already measured from live NTA data:
-- **On-time performance hovers around 50%** — at any given moment, roughly half the fleet is more than 5 minutes off schedule
-- **248+ bunching pairs** detected simultaneously across 74 routes during evening operations
-- **Network Health Score: 67-69/100** (Grade C) — indicating systemic headway irregularity and delay
-- **The top 10 worst-performing routes** show average delays exceeding 10 minutes
+- **On-time performance at 49.3%** — at any given moment, half the fleet is more than 5 minutes off schedule
+- **232 bunching pairs** detected simultaneously across 81 routes during Thursday evening peak
+- **125 ghost buses** (9.5% of fleet) — signal-lost vehicles passengers wait for in vain
+- **146 dead routes** — scheduled services with zero live buses operating
+- **Network Health Score: 69/100** (Grade C) — indicating systemic headway irregularity and delay
+- **Top 5 worst routes** (64, 190, 40, 55, 402) average 27-39 minutes of delay
 
 These aren't hypothetical numbers. They come from our working prototype running against live NTA GTFS-RT data right now.
 
@@ -63,8 +65,8 @@ Three converging factors make this the right moment:
 ## Value
 
 ### For Dublin Bus Operations
-- **20 real-time interventions** generated automatically from live data during a single snapshot — each with a specific action, target stop, estimated hold time, and passenger impact
-- **Network Health Score** (0-100): a single metric that tells management "how healthy is my network RIGHT NOW" — currently Grade C (67-69), driven by on-time performance (47%) and headway regularity (53%)
+- **20 real-time HOLD interventions** generated automatically during a single live snapshot — each specifying the exact bus, stop, hold duration, and estimated passenger impact (e.g., "HOLD bus #2129 at Clonkeen Road for 180s to restore E1 headway")
+- **Network Health Score** (0-100): a single metric that tells management "how healthy is my network RIGHT NOW" — currently Grade C (69/100), with clear component breakdown
 - **Intervention history**: track what was approved, what happened after — evidence-based proof that interventions improve service
 
 ### For Dublin Bus Passengers (159M/year)
@@ -116,8 +118,8 @@ BusIQ is built entirely on open data (NTA GTFS-RT) and open-source technology. T
 **Technology Readiness Level: TRL 6 — System prototype demonstrated in relevant environment**
 
 BusIQ is not an idea or a concept. It is a working system processing live NTA GTFS-RT data in real time:
-- 1,400+ vehicles tracked simultaneously across 3 operators
-- 414 routes resolved with human-readable names (10,255 stops mapped)
+- 1,334+ vehicles tracked simultaneously across 3 operators (Dublin Bus, Go-Ahead, Bus Éireann)
+- 414 routes resolved with human-readable names (10,255 stops, 227,980 trips mapped)
 - Ghost detection, bunching detection, and intervention generation running against live data
 - Full-stack: FastAPI backend + Next.js frontend + WebSocket real-time streaming
 - The prototype is deployed and accessible via a live URL
