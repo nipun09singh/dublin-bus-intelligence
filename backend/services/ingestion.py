@@ -26,15 +26,28 @@ POLL_INTERVAL = 15  # seconds (NTA rate limit ~4 req/min)
 async def start_background_ingestion() -> asyncio.Task:
     """Start the GTFS-RT poller as a background asyncio task.
 
+    GTFS static data loading and polling both run in background
+    so the server can pass health checks immediately on startup.
+
     Returns the task handle for cancellation on shutdown.
     """
-    # Load GTFS static data (route name mapping)
-    await gtfs_static.load()
-    logger.info(
-        "bg_ingestion.gtfs_static_ready",
-        routes=len(gtfs_static.route_map),
-        trips=len(gtfs_static.trip_route_map),
-    )
+    task = asyncio.create_task(_ingestion_main(), name="bg_gtfs_rt")
+    logger.info("bg_ingestion.task_created")
+    return task
+
+
+async def _ingestion_main() -> None:
+    """Load GTFS static then start polling. Runs entirely in background."""
+    # Load GTFS static data (route name mapping) — can take 30-60s
+    try:
+        await gtfs_static.load()
+        logger.info(
+            "bg_ingestion.gtfs_static_ready",
+            routes=len(gtfs_static.route_map),
+            trips=len(gtfs_static.trip_route_map),
+        )
+    except Exception:
+        logger.exception("bg_ingestion.gtfs_static_failed")
 
     # Create poller with shared Redis client and API key from settings
     redis_client = get_redis()
@@ -43,10 +56,9 @@ async def start_background_ingestion() -> asyncio.Task:
         logger.error("bg_ingestion.no_api_key", msg="NTA_API_KEY not set in .env")
 
     poller = GtfsRealtimePoller(api_key=api_key, redis_client=redis_client)
+    logger.info("bg_ingestion.polling_started", interval=POLL_INTERVAL, has_key=bool(api_key))
 
-    task = asyncio.create_task(_poll_loop(poller), name="bg_gtfs_rt")
-    logger.info("bg_ingestion.started", interval=POLL_INTERVAL, has_key=bool(api_key))
-    return task
+    await _poll_loop(poller)
 
 
 async def _poll_loop(poller: GtfsRealtimePoller) -> None:
