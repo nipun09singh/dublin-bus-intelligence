@@ -18,6 +18,17 @@ const DELAY_LABELS: Record<string, string> = {
     severe: "SEVERELY DELAYED",
 };
 
+const OCCUPANCY_CONFIG: Record<string, { icon: string; label: string; color: string }> = {
+    EMPTY: { icon: "🟢", label: "Empty", color: "#00E676" },
+    MANY_SEATS_AVAILABLE: { icon: "🟢", label: "Many seats", color: "#00E676" },
+    FEW_SEATS_AVAILABLE: { icon: "🟡", label: "Few seats", color: "#FFD600" },
+    STANDING_ROOM_ONLY: { icon: "🟠", label: "Standing only", color: "#FF9800" },
+    CRUSHED_STANDING_ROOM_ONLY: { icon: "🔴", label: "Very full", color: "#E53935" },
+    FULL: { icon: "🔴", label: "Full", color: "#E53935" },
+    NOT_ACCEPTING_PASSENGERS: { icon: "⛔", label: "Not boarding", color: "#C93545" },
+    UNKNOWN: { icon: "⚪", label: "Unknown", color: "rgba(255,255,255,0.3)" },
+};
+
 /**
  * VehicleInfoCard — glass card showing selected bus details.
  *
@@ -147,6 +158,22 @@ export default function VehicleInfoCard() {
                             />
                             <StatCell label="DATA AGE" value={ageDisplay} />
                         </div>
+
+                        {/* Occupancy indicator */}
+                        {(() => {
+                            const occ = OCCUPANCY_CONFIG[vehicle.occupancy_status] || OCCUPANCY_CONFIG.UNKNOWN;
+                            if (vehicle.occupancy_status === "UNKNOWN") return null;
+                            return (
+                                <div
+                                    className="flex items-center gap-2 mt-3 pt-3"
+                                    style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+                                >
+                                    <div className="text-xs" style={{ color: "var(--text-tertiary)" }}>CROWDING</div>
+                                    <span className="text-xs">{occ.icon}</span>
+                                    <span className="text-xs font-medium" style={{ color: occ.color }}>{occ.label}</span>
+                                </div>
+                            );
+                        })()}
 
                         {/* Bearing indicator */}
                         {vehicle.bearing != null && (

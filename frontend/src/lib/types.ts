@@ -82,6 +82,28 @@ export interface ApiResponse<T> {
     };
 }
 
+/** Stop info from search / selection. */
+export interface StopInfo {
+    stop_id: string;
+    stop_name: string;
+    latitude: number;
+    longitude: number;
+}
+
+/** A single predicted arrival at a stop. */
+export interface StopArrival {
+    vehicle_id: string;
+    route_id: string;
+    route_short_name: string;
+    predicted_arrival: string;
+    eta_minutes: number;
+    distance_km: number;
+    confidence: number;
+    current_delay_seconds: number;
+    speed_kmh: number;
+    approach_bearing: number | null;
+}
+
 /** Delay status derived from delay_seconds. */
 export type DelayStatus = "on-time" | "slight" | "moderate" | "severe";
 

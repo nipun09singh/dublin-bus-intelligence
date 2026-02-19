@@ -4,12 +4,15 @@ import { useRef, useCallback, useState } from "react";
 import Link from "next/link";
 import Map, { MapRef, NavigationControl } from "react-map-gl/mapbox";
 import type { MapMouseEvent } from "react-map-gl/mapbox";
+import { AnimatePresence } from "framer-motion";
 import { PillarMode } from "@/lib/types";
 import { useBusStore } from "@/lib/store";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import PulseRing from "@/components/overlays/PulseRing";
 import PillarRail from "@/components/overlays/PillarRail";
 import VehicleInfoCard from "@/components/overlays/VehicleInfoCard";
+import StopETAPanel from "@/components/overlays/StopETAPanel";
+import StopSearch from "@/components/overlays/StopSearch";
 import RouteHoverCard from "@/components/overlays/RouteHoverCard";
 import CrowdReportPanel from "@/components/overlays/CrowdReportPanel";
 import GhostBusPanel from "@/components/overlays/GhostBusPanel";
@@ -53,6 +56,11 @@ export default function NerveCentre() {
     // Demo auto-pilot state
     const [demoActive, setDemoActive] = useState(false);
 
+    // Stop search overlay state
+    const [showStopSearch, setShowStopSearch] = useState(false);
+    const selectedStop = useBusStore((s) => s.selectedStop);
+    const selectStop = useBusStore((s) => s.selectStop);
+
     // Connect to live WebSocket feed
     useWebSocket();
     const busCount = useBusStore((s) => s.vehicles.length);
@@ -64,27 +72,44 @@ export default function NerveCentre() {
         setMapLoaded(true);
     }, []);
 
-    // Click handler: select vehicle or deselect
+    // Click handler: select vehicle, stop, or deselect
     const handleMapClick = useCallback(
         (e: MapMouseEvent) => {
             // Check if we clicked on a vehicle marker
             if (e.features && e.features.length > 0) {
-                const vehicleId = e.features[0].properties?.vehicle_id;
+                const feat = e.features[0];
+                const vehicleId = feat.properties?.vehicle_id;
                 if (vehicleId) {
                     const vehicles = useBusStore.getState().vehicles;
                     const vehicle = vehicles.find(
                         (v) => v.vehicle_id === vehicleId
                     );
                     if (vehicle) {
+                        selectStop(null); // deselect stop
                         selectVehicle(vehicle);
                         return;
                     }
                 }
+                // Check if we clicked on a stop dot
+                const stopId = feat.properties?.stop_id;
+                const stopName = feat.properties?.stop_name;
+                if (stopId && stopName) {
+                    const coords = (feat.geometry as any)?.coordinates;
+                    selectVehicle(null); // deselect vehicle
+                    selectStop({
+                        stop_id: stopId,
+                        stop_name: stopName,
+                        latitude: coords ? coords[1] : 0,
+                        longitude: coords ? coords[0] : 0,
+                    });
+                    return;
+                }
             }
             // Clicked on empty space → deselect
             selectVehicle(null);
+            selectStop(null);
         },
-        [selectVehicle]
+        [selectVehicle, selectStop]
     );
 
     // Cursor changes to pointer over interactive layers
@@ -199,7 +224,7 @@ export default function NerveCentre() {
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
                 cursor={cursor}
-                interactiveLayerIds={["vehicle-markers", "route-lines"]}
+                interactiveLayerIds={["vehicle-markers", "route-lines", "stop-dots"]}
                 attributionControl={false}
                 maxZoom={18}
                 minZoom={10}
@@ -273,10 +298,16 @@ export default function NerveCentre() {
             </div>
 
             {/* ─── RIGHT COLUMN: Info + Alerts (stacked) ─── */}
-            <div className="absolute top-14 right-4 sm:top-16 sm:right-5 z-40 flex flex-col gap-3 max-h-[calc(100vh-7rem)] pointer-events-none" style={{ width: 'clamp(220px, 18vw, 280px)' }}>
+            <div className="absolute top-14 right-4 sm:top-16 sm:right-5 z-40 flex flex-col gap-3 max-h-[calc(100vh-7rem)] overflow-y-auto scrollbar-hide pointer-events-none" style={{ width: 'clamp(220px, 18vw, 280px)' }}>
                 <div className="pointer-events-auto">
                     <VehicleInfoCard />
                 </div>
+                {/* Stop ETA Panel — visible when a stop is selected (all modes) */}
+                {selectedStop && (
+                    <div className="pointer-events-auto">
+                        <StopETAPanel />
+                    </div>
+                )}
                 {activeMode === "optimise" && (
                     <>
                         <div className="pointer-events-auto">
@@ -313,6 +344,24 @@ export default function NerveCentre() {
                 />
             )}
 
+            {/* ─── Stop Search Overlay ─── */}
+            <AnimatePresence>
+                {showStopSearch && (
+                    <div className="absolute top-14 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+                        <StopSearch
+                            onClose={() => setShowStopSearch(false)}
+                            onFlyTo={(lat, lon) => {
+                                mapRef.current?.flyTo({
+                                    center: [lon, lat],
+                                    zoom: 16,
+                                    duration: 1500,
+                                });
+                            }}
+                        />
+                    </div>
+                )}
+            </AnimatePresence>
+
             {/* ─── TOP CENTER: Brand + Status Bar ─── */}
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5">
                 {/* BusIQ Brand Mark */}
@@ -322,6 +371,18 @@ export default function NerveCentre() {
                     </div>
                     <span className="text-[11px] font-bold tracking-tight text-white/90">BusIQ</span>
                 </div>
+
+                {/* Find My Stop — the passenger killer feature */}
+                <button
+                    onClick={() => setShowStopSearch((v) => !v)}
+                    className={`glass px-3 py-2 flex items-center gap-2 transition-colors cursor-pointer ${
+                        showStopSearch ? "border-[#00A8B5]/60" : "hover:border-[#00A8B5]/40"
+                    }`}
+                    title="Find my stop — search for live bus arrivals"
+                >
+                    <span className="text-xs">🚏</span>
+                    <span className="text-[10px] font-semibold tracking-wider" style={{ color: showStopSearch ? "#00A8B5" : "var(--text-secondary)" }}>FIND STOP</span>
+                </button>
 
                 <Link
                     href="/insights"

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 
 from ingestion.gtfs_static.loader import gtfs_static
@@ -45,6 +45,32 @@ async def get_all_stops() -> JSONResponse:
         content=geojson,
         headers={"Cache-Control": "public, max-age=3600"},
     )
+
+
+@router.get("/stops/search")
+async def search_stops(
+    q: str = Query(..., min_length=2, description="Search term for stop name"),
+    limit: int = Query(15, ge=1, le=50),
+) -> dict:
+    """Search stops by name. Returns top matches sorted alphabetically."""
+    q_lower = q.lower()
+    matches = []
+    for stop_id, (name, lat, lon) in gtfs_static.stop_map.items():
+        if q_lower in name.lower():
+            matches.append({
+                "stop_id": stop_id,
+                "stop_name": name,
+                "latitude": lat,
+                "longitude": lon,
+            })
+        if len(matches) >= limit * 3:  # collect extras for sorting
+            break
+    matches.sort(key=lambda s: s["stop_name"])
+    now = datetime.now(timezone.utc)
+    return {
+        "data": matches[:limit],
+        "meta": {"timestamp": now.isoformat(), "version": "1.0", "count": len(matches[:limit])},
+    }
 
 
 @router.get("/{route_id}")

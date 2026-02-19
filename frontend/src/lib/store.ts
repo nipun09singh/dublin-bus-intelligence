@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { VehiclePosition } from "@/lib/types";
+import type { VehiclePosition, StopInfo } from "@/lib/types";
 
 /**
  * Global store for real-time bus state.
@@ -46,6 +46,12 @@ interface BusStore {
 
     /** Store route shapes GeoJSON. */
     setRouteShapes: (geojson: GeoJSON.FeatureCollection) => void;
+
+    /** Currently selected stop (clicked on map or searched). */
+    selectedStop: StopInfo | null;
+
+    /** Select a stop to see ETAs. */
+    selectStop: (stop: StopInfo | null) => void;
 }
 
 export const useBusStore = create<BusStore>((set, get) => ({
@@ -99,4 +105,8 @@ export const useBusStore = create<BusStore>((set, get) => ({
     setActiveRoute: (routeId) => set({ activeRouteId: routeId }),
 
     setRouteShapes: (geojson) => set({ routeShapes: geojson, shapesLoaded: true }),
+
+    selectedStop: null,
+
+    selectStop: (stop) => set({ selectedStop: stop }),
 }));
