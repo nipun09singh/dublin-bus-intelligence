@@ -5,6 +5,8 @@ pydantic-settings==2.1.0
 structlog>=24.0.0
 httpx==0.26.0
 protobuf>=4.25.0
+gtfs-realtime-bindings==1.0.0
+requests==2.31.0
 redis==5.0.1
 fakeredis==2.34.0
 python-dotenv==1.0.0
