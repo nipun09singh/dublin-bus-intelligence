@@ -36,7 +36,7 @@ interface LiveStats {
 interface HealthData {
     score: number;
     grade: string;
-    components: Record<string, number>;
+    components: { name: string; score: number; weight: number; weighted: number; detail: string }[];
 }
 
 interface Intervention {
@@ -338,25 +338,25 @@ export default function InsightsPage() {
                                     grade={health.grade}
                                 />
                                 <div className="mt-4 w-full space-y-2">
-                                    {Object.entries(health.components || {}).map(
-                                        ([k, v]) => (
+                                    {(health.components || []).map(
+                                        (comp) => (
                                             <div
-                                                key={k}
+                                                key={comp.name}
                                                 className="flex justify-between text-xs"
                                             >
-                                                <span className="text-white/40 capitalize">
-                                                    {k.replace(/_/g, " ")}
+                                                <span className="text-white/40">
+                                                    {comp.name}
                                                 </span>
                                                 <span
                                                     className={
-                                                        v >= 70
+                                                        comp.score >= 70
                                                             ? "text-green-400"
-                                                            : v >= 50
+                                                            : comp.score >= 50
                                                                 ? "text-amber-400"
                                                                 : "text-red-400"
                                                     }
                                                 >
-                                                    {Math.round(v)}/100
+                                                    {Math.round(comp.score)}/100
                                                 </span>
                                             </div>
                                         ),

@@ -70,7 +70,6 @@ export default function GhostBusPanel() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="absolute top-80 right-4 sm:right-6 z-40 w-56 sm:w-64"
         >
             <div className="glass p-3">
                 {/* Header */}

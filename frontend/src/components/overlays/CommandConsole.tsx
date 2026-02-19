@@ -134,10 +134,8 @@ export default function CommandConsole({
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="absolute top-44 sm:top-48 left-4 sm:left-6 z-40 w-72 sm:w-80"
-            style={{ maxHeight: "calc(100vh - 230px)" }}
         >
-            <div className="glass p-3 flex flex-col" style={{ maxHeight: "calc(100vh - 230px)" }}>
+            <div className="glass p-3 flex flex-col" style={{ maxHeight: "60vh" }}>
                 {/* Header */}
                 <button
                     onClick={() => setExpanded(!expanded)}
@@ -225,8 +223,8 @@ export default function CommandConsole({
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="overflow-y-auto flex-1"
-                            style={{ maxHeight: "calc(100vh - 240px)" }}
+                            className="overflow-y-auto flex-1 scrollbar-hide"
+                            style={{ maxHeight: "50vh" }}
                         >
                             {/* Type filter pills */}
                             <div className="flex items-center gap-1 mb-2">

@@ -76,7 +76,7 @@ export default function CommunityPulse() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="absolute top-36 sm:top-40 right-4 sm:right-6 z-40 w-64 sm:w-72"
+            className=""
         >
             <div className="glass p-3">
                 {/* Header */}

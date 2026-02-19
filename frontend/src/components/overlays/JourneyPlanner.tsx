@@ -137,7 +137,7 @@ export default function JourneyPlanner({
     }, [onClear]);
 
     return (
-        <div className="absolute top-36 left-4 z-40 w-[340px]">
+        <div>
             {/* ─── Journey Input Panel ─── */}
             <div className="glass rounded-2xl p-4 space-y-3">
                 <div className="flex items-center justify-between">

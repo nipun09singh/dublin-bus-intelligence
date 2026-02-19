@@ -252,11 +252,47 @@ export default function NerveCentre() {
                 onEnd={handleDemoEnd}
             />
 
-            {/* Top-left: Pulse Ring — live fleet counter */}
-            <PulseRing busCount={busCount} />
+            {/* ─── LEFT COLUMN: Health + Mode Panel (stacked, scrollable) ─── */}
+            <div className="absolute top-4 left-4 sm:top-5 sm:left-5 z-40 flex flex-col gap-3 max-h-[calc(100vh-6rem)] pointer-events-none" style={{ width: 'clamp(240px, 22vw, 320px)' }}>
+                <div className="pointer-events-auto">
+                    <PulseRing busCount={busCount} />
+                </div>
+                {activeMode === "optimise" && (
+                    <div className="pointer-events-auto overflow-y-auto flex-1 min-h-0 scrollbar-hide">
+                        <CommandConsole onFlyTo={handleInterventionFlyTo} />
+                    </div>
+                )}
+                {activeMode === "smart-cities" && (
+                    <div className="pointer-events-auto">
+                        <JourneyPlanner
+                            onJourneyPlanned={handleJourneyPlanned}
+                            onClear={handleJourneyClear}
+                        />
+                    </div>
+                )}
+            </div>
 
-            {/* Top-right: Vehicle info card (when selected) */}
-            <VehicleInfoCard />
+            {/* ─── RIGHT COLUMN: Info + Alerts (stacked) ─── */}
+            <div className="absolute top-14 right-4 sm:top-16 sm:right-5 z-40 flex flex-col gap-3 max-h-[calc(100vh-7rem)] pointer-events-none" style={{ width: 'clamp(220px, 18vw, 280px)' }}>
+                <div className="pointer-events-auto">
+                    <VehicleInfoCard />
+                </div>
+                {activeMode === "optimise" && (
+                    <>
+                        <div className="pointer-events-auto">
+                            <GhostBusPanel />
+                        </div>
+                        <div className="pointer-events-auto">
+                            <BunchingAlertPanel />
+                        </div>
+                    </>
+                )}
+                {activeMode === "collab" && (
+                    <div className="pointer-events-auto">
+                        <CommunityPulse />
+                    </div>
+                )}
+            </div>
 
             {/* Route hover card (follows cursor on route lines) */}
             <RouteHoverCard
@@ -269,28 +305,6 @@ export default function NerveCentre() {
             {/* Collaboration: Crowd report panel (collab mode + selected bus) */}
             {activeMode === "collab" && <CrowdReportPanel />}
 
-            {/* Collaboration: Community pulse feed (collab mode) */}
-            {activeMode === "collab" && <CommunityPulse />}
-
-            {/* Optimise: Ghost bus panel */}
-            {activeMode === "optimise" && <GhostBusPanel />}
-
-            {/* Optimise: Bunching alert panel */}
-            {activeMode === "optimise" && <BunchingAlertPanel />}
-
-            {/* Optimise: Command Console — the Intervention Engine UI */}
-            {activeMode === "optimise" && (
-                <CommandConsole onFlyTo={handleInterventionFlyTo} />
-            )}
-
-            {/* Smart Cities: Journey planner */}
-            {activeMode === "smart-cities" && (
-                <JourneyPlanner
-                    onJourneyPlanned={handleJourneyPlanned}
-                    onClear={handleJourneyClear}
-                />
-            )}
-
             {/* Smart Cities: Carbon savings badge */}
             {activeMode === "smart-cities" && carbonSavings && (
                 <CarbonBadge
@@ -299,8 +313,8 @@ export default function NerveCentre() {
                 />
             )}
 
-            {/* Connection status indicator + Demo button + Insights link */}
-            <div className={`absolute ${activeMode === "optimise" ? "top-4 left-1/2 -translate-x-1/2" : "top-4 right-4 sm:top-6 sm:right-6"} z-30 flex items-center gap-2`}>
+            {/* ─── TOP CENTER: Status Bar (always centered) ─── */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
                 <Link
                     href="/insights"
                     className="glass px-3 py-2 flex items-center gap-2 hover:border-cyan-400/40 transition-colors"

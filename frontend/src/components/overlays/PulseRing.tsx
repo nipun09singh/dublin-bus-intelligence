@@ -109,9 +109,8 @@ export default function PulseRing({ busCount }: { busCount: number }) {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50"
         >
-            <div className="glass p-3 sm:p-4 w-52 sm:w-60">
+            <div className="glass p-3 sm:p-4">
                 {/* Health Score Row */}
                 <div className="flex items-center gap-3 mb-2">
                     {/* Animated health ring */}
