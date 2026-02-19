@@ -41,6 +41,13 @@ export default function VehicleInfoCard() {
 
     return (
         <AnimatePresence>
+            {!vehicle && (
+                <div className="glass p-3 text-center">
+                    <span className="text-[10px] uppercase tracking-wider" style={{ color: "var(--text-tertiary)" }}>
+                        Click a bus for details
+                    </span>
+                </div>
+            )}
             {vehicle && (
                 <motion.div
                     key={vehicle.vehicle_id}

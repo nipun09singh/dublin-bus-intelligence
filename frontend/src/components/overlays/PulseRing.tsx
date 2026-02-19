@@ -80,7 +80,7 @@ export default function PulseRing({ busCount }: { busCount: number }) {
 
         for (const v of vehicles) {
             totalDelay += v.delay_seconds;
-            if (v.delay_seconds <= 120) {
+            if (v.delay_seconds <= 300) {
                 onTime++;
             } else {
                 delayed++;

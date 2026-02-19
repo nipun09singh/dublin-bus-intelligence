@@ -16,29 +16,29 @@ export const PILLARS: PillarInfo[] = [
     {
         id: "data-viz",
         label: "Situational Awareness",
-        shortLabel: "AWARENESS",
-        description: "Network health score, fleet status, route report cards",
+        shortLabel: "LIVE MAP",
+        description: "Fleet tracking, health score, route arteries",
         icon: "📊",
     },
     {
         id: "optimise",
         label: "Intervention Engine",
         shortLabel: "INTERVENE",
-        description: "Autonomous recommendations: HOLD, DEPLOY, SURGE — one-click approve",
+        description: "Ghost buses, bunching, one-click actions",
         icon: "⚡",
     },
     {
         id: "collab",
         label: "Passenger Intelligence",
-        shortLabel: "INTEL",
-        description: "Crowd reports feed the intervention engine — passengers as sensors",
+        shortLabel: "CROWDSRC",
+        description: "Crowding reports, sentiment, community feed",
         icon: "📡",
     },
     {
         id: "smart-cities",
         label: "City Orchestrator",
-        shortLabel: "ORCHESTRATE",
-        description: "Cross-modal coordination, event-aware ops, carbon dashboard",
+        shortLabel: "MULTIMODAL",
+        description: "Bus + Luas + DART + Bike, carbon dashboard",
         icon: "🏙️",
     },
 ];
@@ -86,14 +86,14 @@ export interface ApiResponse<T> {
 export type DelayStatus = "on-time" | "slight" | "moderate" | "severe";
 
 export function getDelayStatus(delay: number): DelayStatus {
-    if (delay <= 60) return "on-time";
-    if (delay <= 180) return "slight";
-    if (delay <= 300) return "moderate";
+    if (delay <= 300) return "on-time";
+    if (delay <= 600) return "slight";
+    if (delay <= 900) return "moderate";
     return "severe";
 }
 
 export function formatDelay(seconds: number): string {
-    if (Math.abs(seconds) < 30) return "On time";
+    if (Math.abs(seconds) < 60) return "On time";
     const mins = Math.round(seconds / 60);
     if (mins > 0) return `${mins} min late`;
     return `${Math.abs(mins)} min early`;

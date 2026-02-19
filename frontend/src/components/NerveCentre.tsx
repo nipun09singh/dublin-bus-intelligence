@@ -313,8 +313,16 @@ export default function NerveCentre() {
                 />
             )}
 
-            {/* ─── TOP CENTER: Status Bar (always centered) ─── */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
+            {/* ─── TOP CENTER: Brand + Status Bar ─── */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5">
+                {/* BusIQ Brand Mark */}
+                <div className="glass px-3 py-2 flex items-center gap-2">
+                    <div className="h-5 w-5 rounded-md flex items-center justify-center" style={{ background: "linear-gradient(135deg, #00808b, #00a8b5)" }}>
+                        <span className="text-[9px] font-black text-white">IQ</span>
+                    </div>
+                    <span className="text-[11px] font-bold tracking-tight text-white/90">BusIQ</span>
+                </div>
+
                 <Link
                     href="/insights"
                     className="glass px-3 py-2 flex items-center gap-2 hover:border-cyan-400/40 transition-colors"

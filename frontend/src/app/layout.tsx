@@ -37,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${inter.variable} font-sans antialiased bg-black text-white overflow-hidden`}
+        className={`${inter.variable} font-sans antialiased bg-black text-white`}
       >
         <script
           dangerouslySetInnerHTML={{
