@@ -257,8 +257,8 @@ export default function InsightsPage() {
                         <button
                             onClick={() => setAutoRefresh(!autoRefresh)}
                             className={`text-xs px-3 py-1 rounded-full border transition ${autoRefresh
-                                    ? "border-cyan-500/30 text-cyan-400 bg-cyan-500/10"
-                                    : "border-white/10 text-white/40"
+                                ? "border-cyan-500/30 text-cyan-400 bg-cyan-500/10"
+                                : "border-white/10 text-white/40"
                                 }`}
                         >
                             {autoRefresh ? "Auto-refresh ON" : "Auto-refresh OFF"}
