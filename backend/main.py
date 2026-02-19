@@ -71,6 +71,28 @@ async def healthz() -> dict[str, str]:
     return {"status": "ok", "service": "busiq"}
 
 
+@app.get("/debug/status")
+async def debug_status():
+    """Debug endpoint: check ingestion status."""
+    import asyncio
+    from backend.core.redis import get_redis
+    redis = get_redis()
+    fleet_members = await redis.smembers("busiq:fleet")
+    fleet_ts = await redis.get("busiq:fleet:ts")
+    has_key = bool(settings.NTA_API_KEY)
+    key_prefix = settings.NTA_API_KEY[:8] + "..." if has_key else "(empty)"
+    # Check background tasks
+    tasks = [t.get_name() for t in asyncio.all_tasks() if not t.done()]
+    return {
+        "nta_key_set": has_key,
+        "nta_key_prefix": key_prefix,
+        "fleet_size": len(fleet_members),
+        "fleet_ts": fleet_ts,
+        "background_tasks": tasks,
+        "environment": settings.ENVIRONMENT,
+    }
+
+
 @app.get("/api/v1/insights")
 async def insights():
     """Return aggregated stats for the BusIQ Insights page."""
