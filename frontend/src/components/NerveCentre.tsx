@@ -14,11 +14,15 @@ import CrowdReportPanel from "@/components/overlays/CrowdReportPanel";
 import GhostBusPanel from "@/components/overlays/GhostBusPanel";
 import BunchingAlertPanel from "@/components/overlays/BunchingAlertPanel";
 import CommunityPulse from "@/components/overlays/CommunityPulse";
+import JourneyPlanner from "@/components/overlays/JourneyPlanner";
+import CarbonBadge from "@/components/overlays/CarbonBadge";
 import VehicleMarkerLayer from "@/components/layers/VehicleMarkerLayer";
 import RouteShapeLayer from "@/components/layers/RouteShapeLayer";
 import StopLayer from "@/components/layers/StopLayer";
 import GhostBusLayer from "@/components/layers/GhostBusLayer";
 import BunchingLayer from "@/components/layers/BunchingLayer";
+import JourneyRibbon from "@/components/layers/JourneyRibbon";
+import MultimodalStops from "@/components/layers/MultimodalStops";
 
 const DUBLIN_CENTER = { latitude: 53.3498, longitude: -6.2603 };
 const INITIAL_ZOOM = 12;
@@ -33,6 +37,14 @@ export default function NerveCentre() {
     const mapRef = useRef<MapRef>(null);
     const [activeMode, setActiveMode] = useState<PillarMode>("data-viz");
     const [mapLoaded, setMapLoaded] = useState(false);
+
+    // Journey planner state (Smart Cities mode)
+    const [journeyOptions, setJourneyOptions] = useState<any[]>([]);
+    const [selectedJourney, setSelectedJourney] = useState(0);
+    const [carbonSavings, setCarbonSavings] = useState<{
+        kg: number;
+        percent: number;
+    } | null>(null);
 
     // Connect to live WebSocket feed
     useWebSocket();
@@ -83,6 +95,27 @@ export default function NerveCentre() {
         x: number;
         y: number;
     } | null>(null);
+
+    // Journey planner callbacks
+    const handleJourneyPlanned = useCallback(
+        (options: any[], selectedIdx: number) => {
+            setJourneyOptions(options);
+            setSelectedJourney(selectedIdx);
+            const opt = options[selectedIdx];
+            if (opt?.carbon) {
+                setCarbonSavings({
+                    kg: opt.carbon.savings_kg,
+                    percent: opt.carbon.savings_percent,
+                });
+            }
+        },
+        []
+    );
+    const handleJourneyClear = useCallback(() => {
+        setJourneyOptions([]);
+        setSelectedJourney(0);
+        setCarbonSavings(null);
+    }, []);
 
     // Handle mouse move for route hover cards
     const handleMouseMove = useCallback((e: MapMouseEvent) => {
@@ -156,6 +189,18 @@ export default function NerveCentre() {
 
                         {/* Layer 5: Vehicle markers (always shown) */}
                         <VehicleMarkerLayer activeMode={activeMode} />
+
+                        {/* Layer 6: Multimodal stops (smart-cities mode) */}
+                        {activeMode === "smart-cities" && <MultimodalStops />}
+
+                        {/* Layer 7: Journey ribbons (smart-cities mode, when planned) */}
+                        {activeMode === "smart-cities" &&
+                            journeyOptions.length > 0 && (
+                                <JourneyRibbon
+                                    options={journeyOptions}
+                                    selectedIdx={selectedJourney}
+                                />
+                            )}
                     </>
                 )}
             </Map>
@@ -187,6 +232,22 @@ export default function NerveCentre() {
 
             {/* Optimise: Bunching alert panel */}
             {activeMode === "optimise" && <BunchingAlertPanel />}
+
+            {/* Smart Cities: Journey planner */}
+            {activeMode === "smart-cities" && (
+                <JourneyPlanner
+                    onJourneyPlanned={handleJourneyPlanned}
+                    onClear={handleJourneyClear}
+                />
+            )}
+
+            {/* Smart Cities: Carbon savings badge */}
+            {activeMode === "smart-cities" && carbonSavings && (
+                <CarbonBadge
+                    savingsKg={carbonSavings.kg}
+                    savingsPercent={carbonSavings.percent}
+                />
+            )}
 
             {/* Connection status indicator */}
             <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2">

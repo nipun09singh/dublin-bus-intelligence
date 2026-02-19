@@ -1,0 +1,8 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'>
+  <rect width='512' height='512' rx='64' fill='#0a0a1a'/>
+  <circle cx='256' cy='200' r='80' fill='none' stroke='#00808B' stroke-width='8'/>
+  <circle cx='256' cy='200' r='12' fill='#00CED1'/>
+  <path d='M200 340 L256 280 L312 340' stroke='#6B2D8B' stroke-width='6' fill='none' stroke-linecap='round'/>
+  <path d='M180 380 L256 320 L332 380' stroke='#0072CE' stroke-width='4' fill='none' stroke-linecap='round'/>
+  <text x='256' y='450' text-anchor='middle' font-family='Inter,sans-serif' font-size='48' font-weight='700' fill='#ffffff'>BusIQ</text>
+</svg>

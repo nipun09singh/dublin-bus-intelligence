@@ -487,7 +487,7 @@ CREATE INDEX idx_vp_geom ON vehicle_positions USING GIST (geom);
 - [x] Data & Viz: route hover cards (route stats on hover)
 - [ ] Optimisation: split-screen time machine *(deferred → Phase 3, needs historical data)*
 - [x] Collaboration: ripple effect for crowd reports + one-tap UI
-- [ ] Smart Cities: multimodal journey ribbon + carbon badge *(deferred → Phase 5, needs Luas/DART APIs)*
+- [x] Smart Cities: multimodal journey ribbon + carbon badge *(completed in Phase 5)*
 - [x] Responsive: desktop Nerve Centre → mobile bottom sheet
 - [ ] Demo sequence choreography (scripted 3-min walkthrough) *(deferred → Phase 6)*
 
@@ -514,17 +514,22 @@ CREATE INDEX idx_vp_geom ON vehicle_positions USING GIST (geom);
 - [ ] Accessibility issue reporter *(deferred — needs moderation queue)*
 - [ ] Sentiment aurora overlay *(deferred → Phase 6 polish)*
 
-### Phase 5 — Smart Cities & Multimodal
-- [ ] Dublin Bikes integration
-- [ ] Luas real-time integration
-- [ ] DART integration
-- [ ] Multimodal journey planner engine
-- [ ] Carbon savings calculator
-- [ ] Open Data API (REST + WebSocket)
+### Phase 5 — Smart Cities & Multimodal ✅
+- [x] Dublin Bikes integration (CityBik.es API — 115 stations, real-time bike/dock availability)
+- [x] Luas real-time integration (luasforecasting.gov.ie XML — 63 stops, Red + Green lines)
+- [x] DART integration (api.irishrail.ie XML — 25 stations, real-time arrivals)
+- [x] Multimodal journey planner engine (heuristic: bus, Luas, DART, bike, walk — returns top 3 options)
+- [x] Carbon savings calculator (CO₂ per mode vs. car, persistent badge)
+- [x] Open Data API: 5 new journey endpoints (`/plan`, `/bikes`, `/luas/{code}`, `/dart/{code}`, `/stops`)
+- [x] Frontend: JourneyPlanner panel (Smart Cities mode — origin/dest picker, "Leave Now" button)
+- [x] Frontend: JourneyRibbon layer (animated bezier curves, mode-coloured, parallel ribbons)
+- [x] Frontend: MultimodalStops layer (203 stops: Luas purple, DART blue, Bikes green)
+- [x] Frontend: CarbonBadge overlay (floating CO₂ savings badge with leaf animation)
+- [x] 21 total API endpoints
 
-### Phase 6 — Polish & Submission
+### Phase 6 — Polish & Submission 🔄
+- [x] Mobile-responsive PWA (manifest.json, service worker, theme-color, apple-web-app)
 - [ ] Performance and load testing
-- [ ] Mobile-responsive PWA
 - [ ] Submission document / pitch deck
 - [ ] Video demo recording
 - [ ] Submit via Dublin Bus Innovation portal
