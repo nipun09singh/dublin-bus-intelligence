@@ -1,18 +1,74 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useBusStore } from "@/lib/store";
 
+const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
+interface HealthComponent {
+    name: string;
+    score: number;
+    weight: number;
+    weighted: number;
+    detail: string;
+}
+
+interface NetworkHealth {
+    score: number;
+    grade: string;
+    status: string;
+    components: HealthComponent[];
+    total_live_vehicles: number;
+    total_routes_active: number;
+    interventions_pending: number;
+}
+
+const GRADE_COLORS: Record<string, string> = {
+    A: "#22C55E",
+    B: "#84CC16",
+    C: "#EAB308",
+    D: "#F97316",
+    F: "#EF4444",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+    excellent: "EXCELLENT",
+    good: "GOOD",
+    fair: "ATTENTION",
+    poor: "POOR",
+    crisis: "CRISIS",
+};
+
 /**
- * PulseRing — top-left glass panel showing live fleet stats.
+ * PulseRing — top-left Situational Awareness panel.
  *
- * Glows brighter as the network gets busier.
- * The ring pulses outward continuously — the city's heartbeat.
- * Shows: bus count, on-time %, avg delay.
+ * Shows Network Health Score (0-100) + live fleet stats.
+ * Glows based on health score, not just fleet size.
+ * The ring colour reflects overall network health.
  */
 export default function PulseRing({ busCount }: { busCount: number }) {
     const vehicles = useBusStore((s) => s.vehicles);
+    const [health, setHealth] = useState<NetworkHealth | null>(null);
+    const [showBreakdown, setShowBreakdown] = useState(false);
+
+    const fetchHealth = useCallback(async () => {
+        try {
+            const resp = await fetch(`${API_URL}/ops/health`);
+            if (!resp.ok) return;
+            const json = await resp.json();
+            setHealth(json.data);
+        } catch {
+            // Silently fail
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchHealth();
+        const interval = setInterval(fetchHealth, 30000);
+        return () => clearInterval(interval);
+    }, [fetchHealth]);
 
     // Compute fleet stats
     const stats = useMemo(() => {
@@ -38,9 +94,15 @@ export default function PulseRing({ busCount }: { busCount: number }) {
         };
     }, [vehicles]);
 
-    // Brightness scales with fleet activity (0 = dead, 1100 = full fleet)
-    const intensity = Math.min(busCount / 1100, 1);
-    const glowOpacity = 0.3 + intensity * 0.5;
+    const score = health?.score ?? 0;
+    const grade = health?.grade ?? "—";
+    const gradeColor = GRADE_COLORS[grade] || "#6B7280";
+    const statusLabel = health ? STATUS_LABELS[health.status] || health.status.toUpperCase() : "LOADING";
+    const pendingInterventions = health?.interventions_pending ?? 0;
+
+    // Glow based on health: green = healthy, red = crisis
+    const healthHue = Math.round((score / 100) * 120); // 0=red, 120=green
+    const glowColor = `hsl(${healthHue}, 80%, 50%)`;
 
     return (
         <motion.div
@@ -49,71 +111,161 @@ export default function PulseRing({ busCount }: { busCount: number }) {
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="absolute top-4 left-4 sm:top-6 sm:left-6 z-50"
         >
-            <div className="glass p-3 sm:p-4">
-                {/* Main counter row */}
-                <div className="flex items-center gap-3 mb-3">
-                    {/* Animated pulse ring */}
+            <div className="glass p-3 sm:p-4 w-52 sm:w-60">
+                {/* Health Score Row */}
+                <div className="flex items-center gap-3 mb-2">
+                    {/* Animated health ring */}
                     <div className="relative flex items-center justify-center">
                         <div
-                            className="absolute h-8 w-8 rounded-full animate-pulse-ring"
+                            className="absolute h-12 w-12 rounded-full animate-pulse-ring"
                             style={{
-                                backgroundColor: `rgba(0, 168, 181, ${glowOpacity})`,
+                                backgroundColor: `${glowColor}40`,
                             }}
                         />
                         <div
-                            className="h-3 w-3 rounded-full"
+                            className="h-10 w-10 rounded-full flex items-center justify-center"
                             style={{
-                                backgroundColor: "var(--busiq-teal-glow)",
-                                boxShadow: `0 0 ${8 + intensity * 12}px rgba(0, 168, 181, ${glowOpacity})`,
+                                border: `2px solid ${gradeColor}`,
+                                boxShadow: `0 0 12px ${gradeColor}40`,
                             }}
-                        />
+                        >
+                            <span
+                                className="tabular-nums text-sm font-bold"
+                                style={{ color: gradeColor }}
+                            >
+                                {health ? score : "—"}
+                            </span>
+                        </div>
                     </div>
 
-                    {/* Bus count */}
-                    <div className="flex flex-col">
+                    {/* Score label */}
+                    <div className="flex flex-col flex-1">
+                        <div className="flex items-center gap-1.5">
+                            <span
+                                className="text-xs font-bold tracking-wider"
+                                style={{ color: gradeColor }}
+                            >
+                                {statusLabel}
+                            </span>
+                            {pendingInterventions > 0 && (
+                                <span
+                                    className="text-[9px] font-bold px-1 py-0.5 rounded-full animate-pulse"
+                                    style={{
+                                        backgroundColor: "rgba(239, 68, 68, 0.2)",
+                                        color: "#EF4444",
+                                    }}
+                                >
+                                    {pendingInterventions} ⚡
+                                </span>
+                            )}
+                        </div>
                         <span
-                            className="tabular-nums text-xl sm:text-2xl font-bold leading-tight"
-                            style={{ color: "var(--text-primary)" }}
-                        >
-                            {busCount.toLocaleString()}
-                        </span>
-                        <span
-                            className="text-[10px] font-medium uppercase tracking-wider"
+                            className="text-[10px] uppercase tracking-wider"
                             style={{ color: "var(--text-tertiary)" }}
                         >
-                            buses active
+                            Network Health
                         </span>
                     </div>
                 </div>
 
-                {/* Stats row */}
-                {busCount > 0 && (
-                    <div
-                        className="flex items-center gap-3 pt-3"
-                        style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+                {/* Fleet count + stats */}
+                <div
+                    className="flex items-center gap-3 pt-2 mb-1"
+                    style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+                >
+                    <MiniStat
+                        value={busCount.toLocaleString()}
+                        label="ACTIVE"
+                        color="var(--text-primary)"
+                    />
+                    {busCount > 0 && (
+                        <>
+                            <MiniStat
+                                value={`${stats.onTimePercent}%`}
+                                label="ON TIME"
+                                color={
+                                    stats.onTimePercent >= 80
+                                        ? "var(--data-success)"
+                                        : stats.onTimePercent >= 60
+                                            ? "var(--data-warning)"
+                                            : "var(--data-error)"
+                                }
+                            />
+                            <MiniStat
+                                value={`${stats.delayed}`}
+                                label="DELAYED"
+                                color="var(--data-hot)"
+                            />
+                        </>
+                    )}
+                </div>
+
+                {/* Health component breakdown (expandable) */}
+                {health && health.components.length > 0 && (
+                    <button
+                        onClick={() => setShowBreakdown(!showBreakdown)}
+                        className="w-full text-[9px] text-center mt-1 py-0.5 rounded transition-colors hover:bg-white/5"
+                        style={{ color: "var(--text-tertiary)" }}
                     >
-                        <MiniStat
-                            value={`${stats.onTimePercent}%`}
-                            label="ON TIME"
-                            color={
-                                stats.onTimePercent >= 80
-                                    ? "var(--data-success)"
-                                    : stats.onTimePercent >= 60
-                                        ? "var(--data-warning)"
-                                        : "var(--data-error)"
-                            }
-                        />
-                        <MiniStat
-                            value={`${stats.avgDelay}m`}
-                            label="AVG DELAY"
-                            color="var(--text-secondary)"
-                        />
-                        <MiniStat
-                            value={`${stats.delayed}`}
-                            label="DELAYED"
-                            color="var(--data-hot)"
-                        />
-                    </div>
+                        {showBreakdown ? "Hide breakdown ▲" : "Show breakdown ▼"}
+                    </button>
+                )}
+
+                {showBreakdown && health && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        className="mt-2 space-y-1.5"
+                    >
+                        {health.components.map((comp) => (
+                            <div key={comp.name}>
+                                <div className="flex items-center justify-between mb-0.5">
+                                    <span
+                                        className="text-[9px]"
+                                        style={{ color: "var(--text-tertiary)" }}
+                                    >
+                                        {comp.name}
+                                    </span>
+                                    <span
+                                        className="text-[9px] tabular-nums font-semibold"
+                                        style={{
+                                            color:
+                                                comp.score >= 75
+                                                    ? "#22C55E"
+                                                    : comp.score >= 50
+                                                        ? "#EAB308"
+                                                        : "#EF4444",
+                                        }}
+                                    >
+                                        {Math.round(comp.score)}
+                                    </span>
+                                </div>
+                                <div
+                                    className="h-1 rounded-full overflow-hidden"
+                                    style={{ backgroundColor: "rgba(255,255,255,0.08)" }}
+                                >
+                                    <div
+                                        className="h-full rounded-full transition-all duration-500"
+                                        style={{
+                                            width: `${comp.score}%`,
+                                            backgroundColor:
+                                                comp.score >= 75
+                                                    ? "#22C55E"
+                                                    : comp.score >= 50
+                                                        ? "#EAB308"
+                                                        : "#EF4444",
+                                        }}
+                                    />
+                                </div>
+                                <span
+                                    className="text-[8px] mt-0.5 block"
+                                    style={{ color: "var(--text-tertiary)" }}
+                                >
+                                    {comp.detail}
+                                </span>
+                            </div>
+                        ))}
+                    </motion.div>
                 )}
             </div>
         </motion.div>

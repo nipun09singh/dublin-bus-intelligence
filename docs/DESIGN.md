@@ -38,53 +38,86 @@ Submit under **Smart Cities** (highest visibility, Smart Dublin backing) but des
 
 ## 3. Product Vision
 
-### 3.1 One-Line
+> **BusIQ** is not a dashboard. It's an **Autonomous Operations Co-Pilot** for Dublin Bus — a system that detects problems, generates specific interventions, and lets controllers approve them with one click. It turns 165 million annual passengers into an operational sensor network, and turns raw data into decisions.
 
-**BusIQ** — a real-time intelligence layer for Dublin's bus network that predicts, visualises, and optimises the passenger experience.
+### 3.1 One-Sentence Pitch
 
-### 3.2 Core Value Propositions
+*"BusIQ is the real-time decision engine Dublin Bus doesn't have — it detects ghost buses, bunching, and crowding automatically, then tells controllers exactly what to do about it: hold this bus, reroute that one, deploy an extra from this depot. One click. Measurable impact."*
 
-| For Whom | Value |
-|---|---|
-| **Passengers** | Know exactly when your bus arrives, how crowded it'll be, and the fastest multimodal route — before you leave home. |
-| **Dublin Bus Ops** | See live demand vs. supply heatmaps, detect ghost buses, forecast depot-level demand. |
-| **The City (Smart Dublin)** | A reusable intelligence layer that any transit operator or city planner can plug into. |
+### 3.2 The Core Problem (Why This Matters)
+
+Dublin Bus has data. They have a control room. But between "seeing a problem" and "fixing it" is a **cognitive gap** that costs them millions in passenger trust and operational efficiency:
+
+1. **Ghost bus appears**: Controller sees a gap on the timetable. Now what? They manually scan the depot roster, call a supervisor, decide which standby to deploy, and by then 200 passengers have already walked away.
+2. **Bunching happens**: Two 39A buses are nose-to-tail at Phibsborough. Controller sees it. But calculating the hold time to restore even headway? Mental arithmetic under pressure. Usually they do nothing.
+3. **Overcrowding builds**: Passengers are packed. Nobody tells Dublin Bus until complaints hit Twitter 3 hours later. No proactive intervention.
+4. **Cross-modal disruption**: Luas breaks down, 500 passengers need buses. Dublin Bus finds out when the stops overflow.
+
+**BusIQ closes this gap.** It doesn't show you the problem — it tells you what to do about it, right now, one click.
+
+### 3.3 Core Value Propositions
+
+| For | Old (Broken) | New (BusIQ) |
+|---|---|---|
+| **Dublin Bus Controllers** | "Here's a map of your buses." | "Bus #33017 is bunched with #33024. **HOLD #33017 at Phibsborough for 90 seconds** to restore 8-min headway. Est. impact: 340 passengers get even service. [APPROVE] [DISMISS]" |
+| **Dublin Bus Management** | "Here are some charts about delays." | **Network Health Score: 73/100.** Route 39A is dragging it down (ghost rate 12%, bunching 3x today). Here's the intervention history — 14 approved today, average wait time reduced by 2.3 min. |
+| **Passengers** | "Report crowding for... other passengers?" | Every report feeds the **Intervention Engine**. "Your report triggered an extra bus on Route 39A." Passengers become operational sensors with visible impact. |
+| **The City** | "Here's a journey planner (use Citymapper instead)." | **Cross-modal disruption response**: "Luas Green Line down → predicted surge of 200 pax at St Stephen's Green → auto-generated surge plan: pre-position 2 extra buses on Routes 15/44." |
+
+### 3.4 Why Not Google Maps / Citymapper?
+
+Google Maps is for **passengers deciding how to get somewhere**. BusIQ is for **Dublin Bus deciding how to run their network right now**. They're not competitors — they're different products for different users. Google Maps will never tell a controller to hold a bus for 90 seconds. Citymapper will never auto-generate a surge response plan when the Luas breaks down. That's BusIQ's lane.
 
 ---
 
 ## 4. Features — Mapped to DBI Pillars
 
-### 4.1 Data & Visualisation (Pillar 1)
+### Pillar 1: Data & Visualisation → **Situational Awareness Engine**
+The viz isn't the product — it's the **context layer** for decisions.
 
-| Feature | Description | Complexity |
+| Feature | What It Actually Does | Phase |
 |---|---|---|
-| **Live Fleet Map** | Real-time Mapbox GL map showing all ~1,100 buses with route colouring, direction arrows, and speed indicators. | Medium |
-| **Demand Heatmap** | 30-min rolling forecast of passenger demand per stop/corridor overlaid on the city map. Trained on historical boarding data + time/day/weather/events. | High |
-| **Route Health Dashboard** | Per-route scorecards: on-time %, crowding index, service gaps, trend sparklines. | Medium |
+| Network Health Score (0-100) | Real-time aggregate: on-time %, ghost rate, bunching count, crowding levels → single score that tells a controller "how healthy is my network RIGHT NOW" | 2 |
+| Route Report Cards | Per-route KPIs: on-time rate, avg delay, ghost events today, bunching events, passenger sentiment score | 2 |
+| Live fleet map with delay colouring | Context layer — see where everything is. Delay = colour. Speed = trail length. | 2 |
+| Demand heatmap + time scrubber | Historical demand flow through the day — evidence for frequency planning | 3 |
 
-### 4.2 Optimisation (Pillar 2)
+### Pillar 2: Optimisation → **Autonomous Intervention Engine**
+The killer differentiator. Not "here's a problem" but "here's what to do about it."
 
-| Feature | Description | Complexity |
+| Feature | What It Actually Does | Phase |
 |---|---|---|
-| **Predictive ETA Engine** | ML model (LightGBM → Transformer) trained on historical GPS traces + weather + calendar + event data. Target: beat official GTFS-RT ETAs by ≥15%. | High |
-| **Ghost Bus Detector** | Flag buses that appear in schedule but not in real-time feed (phantom services). Surface to ops dashboard. | Medium |
-| **Bunching Detector** | Real-time detection of bus bunching on a route; trigger alert + suggest hold/express strategy. | Medium |
+| **Intervention: HOLD** | Bunching detected → compute optimal hold time + stop → "HOLD bus X at stop Y for Z seconds to restore target headway" | 3 |
+| **Intervention: DEPLOY** | Ghost bus detected → identify nearest depot with standby → "DEPLOY standby from Broadstone depot to cover Route 39A, gap = 18 min" | 3 |
+| **Intervention: SURGE** | Crowding threshold exceeded → "Route 39A at 140% capacity for 12 min. SHORT-TURN bus #33019 at Drumcondra, redeploy to 39A." | 4 |
+| **Intervention: CROSS-MODAL** | Luas/DART disruption detected → "Predict surge of 200 pax at X. Pre-position 2 extra buses." | 5 |
+| Command Console | Glass panel showing all active interventions: type, recommendation, est. impact, confidence, APPROVE/DISMISS buttons | 3 |
+| Intervention History | What was approved, what happened after — measurable proof that BusIQ improves service | 3 |
+| Ghost bus detection | Scheduled vehicle with no signal → triggers DEPLOY intervention | 3 |
+| Bunching detection | Same-route vehicles within 400m → triggers HOLD intervention | 3 |
 
-### 4.3 Collaboration (Pillar 3)
+### Pillar 3: Collaboration → **Passenger Intelligence Network**
+Passengers don't report for other passengers. They report for **Dublin Bus operations.**
 
-| Feature | Description | Complexity |
+| Feature | What It Actually Does | Phase |
 |---|---|---|
-| **Crowd-Sourced Crowding** | Passengers report crowding level (empty / seats / standing / full) via a single tap. Aggregate + display on map. | Medium |
-| **Accessibility Reporter** | Report broken ramps, non-functional displays, audio issues. Geo-tagged, time-stamped, anonymised. | Low |
-| **Community Pulse Feed** | Live feed of anonymised passenger sentiment — "What Dublin is saying about the bus today." | Low |
+| One-tap crowding report | "Full / Standing / Seats / Empty" → feeds Intervention Engine immediately | 4 |
+| Crowd-to-intervention pipeline | 3+ "FULL" reports in 10 min on same route → auto-generates SURGE intervention | 4 |
+| Incident reporting | "Wheelchair ramp broken on bus #33017" → maintenance alert (not just a pin on a map) | 4 |
+| Feedback loop | "Your report triggered an extra bus on Route 39A" → passengers see their operational impact | 4 |
+| Community pulse feed | Real-time stream of reports as they flow into the system — network activity monitor | 4 |
+| Sentiment aurora | Aggregate mood ring — but now it reflects intervention *need*, not just vibes | 4 |
 
-### 4.4 Smart Cities (Pillar 4) — Primary Submission
+### Pillar 4: Smart Cities → **City Transit Orchestrator**
+Not a journey planner. A cross-modal coordination brain for the city.
 
-| Feature | Description | Complexity |
+| Feature | What It Actually Does | Phase |
 |---|---|---|
-| **Multimodal "Leave Now" Router** | Integrate Dublin Bus, Luas, DART, Dublin Bikes, and walking into a single door-to-door journey planner with real-time data. | High |
-| **Carbon Savings Tracker** | Estimate CO₂ saved per journey vs. private car. Gamify with daily/weekly leaderboards. | Low |
-| **Open Data API** | RESTful + WebSocket API exposing our predictions and aggregations so other city services can build on top. | Medium |
+| Cross-modal disruption response | Luas/DART down → predict passenger surge at bus stops → pre-generate bus surge plan | 5 |
+| Event-aware operations | Concert/match ending → auto-generate surge deployment plan for affected routes | 5 |
+| Multimodal journey planner | Still exists, but positioned as a **planning/modelling tool**, not a passenger product | 5 |
+| Carbon dashboard (city-scale) | City-level: "Dublin Bus network emitted X tonnes this week. BusIQ interventions saved Y tonnes by reducing empty running and bunching." | 5 |
+| Open Data API (23+ endpoints) | Every data source and intervention accessible via REST — city planners, researchers, developers | 5 |
 
 ---
 

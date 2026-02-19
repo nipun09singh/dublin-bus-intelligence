@@ -25,6 +25,7 @@ import JourneyRibbon from "@/components/layers/JourneyRibbon";
 import MultimodalStops from "@/components/layers/MultimodalStops";
 import SentimentAurora from "@/components/overlays/SentimentAurora";
 import DemoAutoPilot from "@/components/overlays/DemoAutoPilot";
+import CommandConsole from "@/components/overlays/CommandConsole";
 
 const DUBLIN_CENTER = { latitude: 53.3498, longitude: -6.2603 };
 const INITIAL_ZOOM = 12;
@@ -136,6 +137,18 @@ export default function NerveCentre() {
         []
     );
     const handleDemoEnd = useCallback(() => setDemoActive(false), []);
+
+    // Intervention fly-to handler (Command Console)
+    const handleInterventionFlyTo = useCallback(
+        (lat: number, lon: number) => {
+            mapRef.current?.flyTo({
+                center: [lon, lat],
+                zoom: 15,
+                duration: 1500,
+            });
+        },
+        []
+    );
 
     // Handle mouse move for route hover cards
     const handleMouseMove = useCallback((e: MapMouseEvent) => {
@@ -264,6 +277,11 @@ export default function NerveCentre() {
             {/* Optimise: Bunching alert panel */}
             {activeMode === "optimise" && <BunchingAlertPanel />}
 
+            {/* Optimise: Command Console — the Intervention Engine UI */}
+            {activeMode === "optimise" && (
+                <CommandConsole onFlyTo={handleInterventionFlyTo} />
+            )}
+
             {/* Smart Cities: Journey planner */}
             {activeMode === "smart-cities" && (
                 <JourneyPlanner
@@ -281,7 +299,7 @@ export default function NerveCentre() {
             )}
 
             {/* Connection status indicator + Demo button */}
-            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2">
+            <div className={`absolute ${activeMode === "optimise" ? "top-4 left-1/2 -translate-x-1/2" : "top-4 right-4 sm:top-6 sm:right-6"} z-30 flex items-center gap-2`}>
                 {!demoActive && (
                     <button
                         onClick={() => setDemoActive(true)}

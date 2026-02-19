@@ -10,6 +10,7 @@ from backend.api.v1.predictions import router as predictions_router
 from backend.api.v1.crowding import router as crowding_router
 from backend.api.v1.journey import router as journey_router
 from backend.api.v1.health import router as health_router
+from backend.api.v1.operations import router as operations_router
 from backend.api.v1.ws import router as ws_router
 
 api_router = APIRouter()
@@ -20,4 +21,5 @@ api_router.include_router(routes_router, prefix="/routes", tags=["routes"])
 api_router.include_router(predictions_router, prefix="/predictions", tags=["predictions"])
 api_router.include_router(crowding_router, prefix="/crowding", tags=["crowding"])
 api_router.include_router(journey_router, prefix="/journey", tags=["journey"])
+api_router.include_router(operations_router, prefix="/ops", tags=["operations"])
 api_router.include_router(ws_router, tags=["websocket"])
