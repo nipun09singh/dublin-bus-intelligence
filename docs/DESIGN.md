@@ -457,27 +457,35 @@ CREATE INDEX idx_vp_geom ON vehicle_positions USING GIST (geom);
 - [x] Frontend build verified ✓
 - [ ] NTA API key acquisition started
 
-### Phase 1 — Data Ingestion & Storage
-- [ ] GTFS static parser (routes, stops, shapes, schedules)
-- [ ] GTFS-RT poller (vehicle positions, trip updates)
+### Phase 1 — Data Ingestion & Storage ✅
+- [x] GTFS static parser (routes, stops, shapes, schedules)
+- [x] GTFS-RT poller (vehicle positions, trip updates)
 - [ ] PostgreSQL schema + PostGIS setup
-- [ ] Redis live state management
+- [x] Redis live state management
 - [ ] Weather data poller (Met Éireann)
 - [ ] Historical data accumulation begins
 
-### Phase 2 — Live Visualisation (The Demo Winner)
-- [ ] Next.js app scaffold with Glass Rail design system
-- [ ] Mapbox GL integration (dark style, custom layers)
-- [ ] Nerve Centre single-canvas layout
-- [ ] Bottom glass rail pillar mode switcher
-- [ ] Pulse Ring (live fleet counter, top-left)
-- [ ] Live bus markers with directional trails
+### Phase 2 — Live Visualisation (The Demo Winner) 🔄
+- [x] Next.js app scaffold with Glass Rail design system
+- [x] Mapbox GL integration (dark style, custom layers)
+- [x] Nerve Centre single-canvas layout
+- [x] Bottom glass rail pillar mode switcher
+- [x] Pulse Ring (live fleet counter + stats, top-left)
+- [x] Live bus markers with delay-based colouring
+- [x] Route arteries from GTFS shapes.txt (116 routes)
+- [x] Vehicle click → glass info card (route, delay, speed)
+- [x] Data aging opacity on vehicle markers
+- [x] Route labels at zoom ≥ 13
+- [x] Active route highlight (glow on selection)
+- [x] Ghost bus detection layer (stale data, optimise mode)
+- [x] Bunching detection layer (same-route proximity, optimise mode)
+- [x] Pillar mode switching (layers toggle per mode)
+- [x] Connection status indicator (glass panel)
 - [ ] Route arteries with flow particle animation
 - [ ] Stop heartbeat pulse on arrivals
 - [ ] Data & Viz: demand thermal heatmap + time scrubber
 - [ ] Data & Viz: route hover cards + stop radial timeline
 - [ ] Optimisation: split-screen time machine
-- [ ] Optimisation: ghost bus + bunching visual layers
 - [ ] Collaboration: ripple effect for crowd reports + one-tap UI
 - [ ] Smart Cities: multimodal journey ribbon + carbon badge
 - [ ] Responsive: desktop Nerve Centre → mobile bottom sheet

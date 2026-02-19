@@ -35,6 +35,12 @@ class GtfsStaticLoader:
         self.trip_route_map: dict[str, str] = {}
         # stop_id → (name, lat, lon)
         self.stop_map: dict[str, tuple[str, float, float]] = {}
+        # shape_id → list of (lat, lon, sequence)
+        self.shape_map: dict[str, list[tuple[float, float]]] = {}
+        # trip_id → shape_id
+        self.trip_shape_map: dict[str, str] = {}
+        # route_id → set of shape_ids (via trips)
+        self.route_shapes: dict[str, set[str]] = {}
 
     async def load(self, urls: list[str] | None = None) -> None:
         """Download and parse GTFS static data from all operators."""
@@ -51,12 +57,15 @@ class GtfsStaticLoader:
                     self._parse_routes(zf)
                     self._parse_trips(zf)
                     self._parse_stops(zf)
+                    self._parse_shapes(zf)
+                    self._build_route_shapes()
                     logger.info(
                         "gtfs_static.loaded",
                         url=url,
                         routes=len(self.route_map),
                         trips=len(self.trip_route_map),
                         stops=len(self.stop_map),
+                        shapes=len(self.shape_map),
                     )
                 except Exception:
                     logger.exception("gtfs_static.load_failed", url=url)
@@ -82,15 +91,18 @@ class GtfsStaticLoader:
             logger.warning("gtfs_static.no_routes_txt")
 
     def _parse_trips(self, zf: zipfile.ZipFile) -> None:
-        """Parse trips.txt → trip_id to route_id mapping."""
+        """Parse trips.txt → trip_id to route_id + shape_id mapping."""
         try:
             with zf.open("trips.txt") as f:
                 reader = csv.DictReader(io.TextIOWrapper(f, encoding="utf-8-sig"))
                 for row in reader:
                     tid = row.get("trip_id", "").strip()
                     rid = row.get("route_id", "").strip()
+                    shape_id = row.get("shape_id", "").strip()
                     if tid and rid:
                         self.trip_route_map[tid] = rid
+                    if tid and shape_id:
+                        self.trip_shape_map[tid] = shape_id
         except KeyError:
             logger.warning("gtfs_static.no_trips_txt")
 
@@ -108,6 +120,42 @@ class GtfsStaticLoader:
                         self.stop_map[sid] = (name, lat, lon)
         except KeyError:
             logger.warning("gtfs_static.no_stops_txt")
+
+    def _parse_shapes(self, zf: zipfile.ZipFile) -> None:
+        """Parse shapes.txt → shape_id to ordered list of (lat, lon)."""
+        try:
+            with zf.open("shapes.txt") as f:
+                reader = csv.DictReader(io.TextIOWrapper(f, encoding="utf-8-sig"))
+                raw: dict[str, list[tuple[int, float, float]]] = {}
+                for row in reader:
+                    shape_id = row.get("shape_id", "").strip()
+                    lat = float(row.get("shape_pt_lat", 0))
+                    lon = float(row.get("shape_pt_lon", 0))
+                    seq = int(row.get("shape_pt_sequence", 0))
+                    if shape_id:
+                        raw.setdefault(shape_id, []).append((seq, lat, lon))
+                # Sort by sequence and store as (lat, lon) only
+                for shape_id, pts in raw.items():
+                    pts.sort(key=lambda x: x[0])
+                    self.shape_map[shape_id] = [(lat, lon) for _, lat, lon in pts]
+                logger.info("gtfs_static.shapes_parsed", count=len(self.shape_map))
+        except KeyError:
+            logger.warning("gtfs_static.no_shapes_txt")
+
+    def _build_route_shapes(self) -> None:
+        """Build route_id → shape_ids mapping via trips.txt (trip → shape, trip → route)."""
+        # First, build trip_id → shape_id from trips.txt (already parsed)
+        # We need to re-read trip_shape_map — trips.txt has shape_id column
+        # But we already parsed trips — let's just use what we have
+        # route_shapes is populated from trip_route_map + trip_shape_map
+        for trip_id, route_id in self.trip_route_map.items():
+            shape_id = self.trip_shape_map.get(trip_id)
+            if shape_id:
+                self.route_shapes.setdefault(route_id, set()).add(shape_id)
+        logger.info(
+            "gtfs_static.route_shapes_built",
+            routes_with_shapes=len(self.route_shapes),
+        )
 
     def get_route_name(self, route_id: str) -> str:
         """Resolve internal route_id to human-readable name.
@@ -136,6 +184,96 @@ class GtfsStaticLoader:
         if route_id:
             return self.get_route_name(route_id)
         return ""
+
+    def get_shapes_geojson(self, route_id: str | None = None) -> dict:
+        """Export route shapes as GeoJSON FeatureCollection.
+
+        If route_id specified, return only that route's shapes.
+        Otherwise, return one representative shape per route (first shape_id).
+        """
+        features = []
+
+        if route_id:
+            # Single route — return all its shapes  
+            shape_ids = self.route_shapes.get(route_id, set())
+            for shape_id in shape_ids:
+                coords = self.shape_map.get(shape_id, [])
+                if len(coords) < 2:
+                    continue
+                features.append({
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": [[lon, lat] for lat, lon in coords],
+                    },
+                    "properties": {
+                        "route_id": route_id,
+                        "route_short_name": self.get_route_name(route_id),
+                        "shape_id": shape_id,
+                    },
+                })
+        else:
+            # All routes — one representative shape per route
+            for rid, shape_ids in self.route_shapes.items():
+                if not shape_ids:
+                    continue
+                # Pick the shape with the most points (most complete)
+                best_shape = max(shape_ids, key=lambda s: len(self.shape_map.get(s, [])))
+                coords = self.shape_map.get(best_shape, [])
+                if len(coords) < 2:
+                    continue
+                features.append({
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": [[lon, lat] for lat, lon in coords],
+                    },
+                    "properties": {
+                        "route_id": rid,
+                        "route_short_name": self.get_route_name(rid),
+                        "shape_id": best_shape,
+                    },
+                })
+
+        return {
+            "type": "FeatureCollection",
+            "features": features,
+        }
+
+    def get_stops_geojson(self) -> dict:
+        """Export all stops as GeoJSON FeatureCollection."""
+        features = []
+        for stop_id, (name, lat, lon) in self.stop_map.items():
+            if lat == 0 and lon == 0:
+                continue
+            features.append({
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [lon, lat],
+                },
+                "properties": {
+                    "stop_id": stop_id,
+                    "stop_name": name,
+                },
+            })
+        return {
+            "type": "FeatureCollection",
+            "features": features,
+        }
+
+    def get_all_routes_info(self) -> list[dict]:
+        """Return list of all routes with metadata."""
+        routes = []
+        for route_id, short_name in self.route_map.items():
+            routes.append({
+                "route_id": route_id,
+                "route_short_name": short_name,
+                "has_shapes": route_id in self.route_shapes,
+                "shape_count": len(self.route_shapes.get(route_id, set())),
+            })
+        routes.sort(key=lambda r: r["route_short_name"])
+        return routes
 
 
 # Module-level singleton
