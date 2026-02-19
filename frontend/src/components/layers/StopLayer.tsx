@@ -111,7 +111,6 @@ export default function StopLayer() {
                 type="circle"
                 paint={stopGlowPaint}
                 minzoom={14}
-                beforeId="vehicle-glow"
             />
             {/* Core stop dot */}
             <Layer
@@ -119,7 +118,6 @@ export default function StopLayer() {
                 type="circle"
                 paint={stopCirclePaint}
                 minzoom={14}
-                beforeId="vehicle-glow"
             />
             {/* Stop labels at high zoom */}
             <Layer

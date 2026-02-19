@@ -128,7 +128,6 @@ export default function RouteShapeLayer() {
                 type="line"
                 paint={routeGlowPaint}
                 layout={{ "line-cap": "round", "line-join": "round" }}
-                beforeId="vehicle-glow"
             />
             {/* Base route lines */}
             <Layer
@@ -136,7 +135,6 @@ export default function RouteShapeLayer() {
                 type="line"
                 paint={routeLinePaint}
                 layout={{ "line-cap": "round", "line-join": "round" }}
-                beforeId="vehicle-glow"
             />
             {/* Flow particles — animated dashes showing direction on active route */}
             <Layer
@@ -144,7 +142,6 @@ export default function RouteShapeLayer() {
                 type="line"
                 paint={flowParticlePaint}
                 layout={{ "line-cap": "round", "line-join": "round" }}
-                beforeId="vehicle-glow"
             />
         </Source>
     );
