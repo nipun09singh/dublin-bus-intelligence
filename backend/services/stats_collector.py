@@ -58,8 +58,8 @@ async def collect_stats_snapshot() -> dict:
 
     # Ghost detection
     ghost_report = await detect_ghost_buses()
-    signal_lost = len(ghost_report.signal_lost)
-    dead_routes = len(ghost_report.dead_routes)
+    signal_lost = ghost_report.total_ghost_vehicles
+    dead_routes = ghost_report.total_routes_without_buses
     ghost_rate = round(signal_lost / total * 100, 1) if total else 0
 
     # Bunching detection
@@ -72,7 +72,7 @@ async def collect_stats_snapshot() -> dict:
     try:
         crowding = await get_crowding_snapshot()
         crowd_reports = crowding.total_reports
-        full_reports = sum(1 for r in crowding.route_summaries if r.get("dominant_level") == "full")
+        full_reports = sum(1 for r in crowding.route_summaries if r.latest_level == "full")
     except Exception:
         crowd_reports = 0
         full_reports = 0
