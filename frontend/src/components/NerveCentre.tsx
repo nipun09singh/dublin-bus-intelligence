@@ -23,6 +23,8 @@ import GhostBusLayer from "@/components/layers/GhostBusLayer";
 import BunchingLayer from "@/components/layers/BunchingLayer";
 import JourneyRibbon from "@/components/layers/JourneyRibbon";
 import MultimodalStops from "@/components/layers/MultimodalStops";
+import SentimentAurora from "@/components/overlays/SentimentAurora";
+import DemoAutoPilot from "@/components/overlays/DemoAutoPilot";
 
 const DUBLIN_CENTER = { latitude: 53.3498, longitude: -6.2603 };
 const INITIAL_ZOOM = 12;
@@ -45,6 +47,9 @@ export default function NerveCentre() {
         kg: number;
         percent: number;
     } | null>(null);
+
+    // Demo auto-pilot state
+    const [demoActive, setDemoActive] = useState(false);
 
     // Connect to live WebSocket feed
     useWebSocket();
@@ -116,6 +121,21 @@ export default function NerveCentre() {
         setSelectedJourney(0);
         setCarbonSavings(null);
     }, []);
+
+    // Demo auto-pilot: fly to location
+    const handleDemoFlyTo = useCallback(
+        (opts: { lat: number; lon: number; zoom: number; pitch?: number; bearing?: number }) => {
+            mapRef.current?.flyTo({
+                center: [opts.lon, opts.lat],
+                zoom: opts.zoom,
+                pitch: opts.pitch ?? 0,
+                bearing: opts.bearing ?? 0,
+                duration: 2000,
+            });
+        },
+        []
+    );
+    const handleDemoEnd = useCallback(() => setDemoActive(false), []);
 
     // Handle mouse move for route hover cards
     const handleMouseMove = useCallback((e: MapMouseEvent) => {
@@ -207,6 +227,17 @@ export default function NerveCentre() {
 
             {/* ─── Glass Overlays (HTML over map) ─── */}
 
+            {/* Sentiment Aurora — mood ring gradient (collab mode) */}
+            {activeMode === "collab" && <SentimentAurora />}
+
+            {/* Demo Auto-Pilot teleprompter */}
+            <DemoAutoPilot
+                active={demoActive}
+                onModeChange={setActiveMode}
+                onFlyTo={handleDemoFlyTo}
+                onEnd={handleDemoEnd}
+            />
+
             {/* Top-left: Pulse Ring — live fleet counter */}
             <PulseRing busCount={busCount} />
 
@@ -249,8 +280,27 @@ export default function NerveCentre() {
                 />
             )}
 
-            {/* Connection status indicator */}
+            {/* Connection status indicator + Demo button */}
             <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2">
+                {!demoActive && (
+                    <button
+                        onClick={() => setDemoActive(true)}
+                        className="glass px-3 py-2 flex items-center gap-2 hover:border-[#00A8B5]/40 transition-colors cursor-pointer"
+                        title="Start 3-minute judge demo"
+                    >
+                        <span className="text-xs">▶</span>
+                        <span className="text-[10px] font-semibold tracking-wider" style={{ color: "var(--text-secondary)" }}>DEMO</span>
+                    </button>
+                )}
+                {demoActive && (
+                    <button
+                        onClick={() => setDemoActive(false)}
+                        className="glass px-3 py-2 flex items-center gap-2 hover:border-red-400/40 transition-colors cursor-pointer"
+                    >
+                        <span className="text-xs">■</span>
+                        <span className="text-[10px] font-semibold tracking-wider" style={{ color: "#e74c3c" }}>STOP</span>
+                    </button>
+                )}
                 <div className="glass px-3 py-2 flex items-center gap-2">
                     <div
                         className={`h-2 w-2 rounded-full ${connected

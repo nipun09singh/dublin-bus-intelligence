@@ -489,7 +489,7 @@ CREATE INDEX idx_vp_geom ON vehicle_positions USING GIST (geom);
 - [x] Collaboration: ripple effect for crowd reports + one-tap UI
 - [x] Smart Cities: multimodal journey ribbon + carbon badge *(completed in Phase 5)*
 - [x] Responsive: desktop Nerve Centre → mobile bottom sheet
-- [ ] Demo sequence choreography (scripted 3-min walkthrough) *(deferred → Phase 6)*
+- [x] Demo sequence choreography (scripted 3-min auto-pilot with teleprompter + camera movements)
 
 ### Phase 3 — Predictive Engine ✅
 - [x] Heuristic ETA predictor (v1: distance + speed + delay adjustment, no ML yet)
@@ -512,7 +512,7 @@ CREATE INDEX idx_vp_geom ON vehicle_positions USING GIST (geom);
 - [x] CommunityPulse: scrolling feed of anonymised reports (collab mode)
 - [x] Crowd reports streamed via WebSocket pub/sub channel
 - [ ] Accessibility issue reporter *(deferred — needs moderation queue)*
-- [ ] Sentiment aurora overlay *(deferred → Phase 6 polish)*
+- [x] Sentiment aurora overlay (gradient mood ring — green/amber/red based on crowd sentiment)
 
 ### Phase 5 — Smart Cities & Multimodal ✅
 - [x] Dublin Bikes integration (CityBik.es API — 115 stations, real-time bike/dock availability)
@@ -525,13 +525,17 @@ CREATE INDEX idx_vp_geom ON vehicle_positions USING GIST (geom);
 - [x] Frontend: JourneyRibbon layer (animated bezier curves, mode-coloured, parallel ribbons)
 - [x] Frontend: MultimodalStops layer (203 stops: Luas purple, DART blue, Bikes green)
 - [x] Frontend: CarbonBadge overlay (floating CO₂ savings badge with leaf animation)
-- [x] 21 total API endpoints
+- [x] 23 total API endpoints
 
-### Phase 6 — Polish & Submission 🔄
+### Phase 6 — Polish & Submission ✅
 - [x] Mobile-responsive PWA (manifest.json, service worker, theme-color, apple-web-app)
-- [ ] Performance and load testing
-- [ ] Submission document / pitch deck
-- [ ] Video demo recording
+- [x] Performance benchmark suite (23 endpoints, p50/p95/p99 validation)
+- [x] Submission document / pitch deck (docs/PITCH.md)
+- [x] Demo auto-pilot mode (scripted 3-min walkthrough with teleprompter)
+- [x] Sentiment aurora overlay (collab mode — network mood gradient)
+- [x] Professional README with badges + architecture + quick start
+- [x] 23 total API endpoints
+- [ ] Video demo recording *(requires screen capture)*
 - [ ] Submit via Dublin Bus Innovation portal
 
 ---
