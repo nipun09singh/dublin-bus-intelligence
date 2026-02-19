@@ -95,14 +95,14 @@ function HealthGauge({ score, grade }: { score: number; grade: string }) {
         score >= 80
             ? "text-green-400"
             : score >= 60
-              ? "text-amber-400"
-              : "text-red-400";
+                ? "text-amber-400"
+                : "text-red-400";
     const ring =
         score >= 80
             ? "border-green-500"
             : score >= 60
-              ? "border-amber-500"
-              : "border-red-500";
+                ? "border-amber-500"
+                : "border-red-500";
     return (
         <div className="flex flex-col items-center">
             <div
@@ -154,8 +154,8 @@ function InterventionRow({ int: i }: { int: Intervention }) {
         i.priority === "critical"
             ? "bg-red-500/20 text-red-400 border-red-500/30"
             : i.priority === "high"
-              ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
-              : "bg-cyan-500/20 text-cyan-400 border-cyan-500/30";
+                ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
+                : "bg-cyan-500/20 text-cyan-400 border-cyan-500/30";
     return (
         <div className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.03] border border-white/5">
             <span
@@ -256,11 +256,10 @@ export default function InsightsPage() {
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => setAutoRefresh(!autoRefresh)}
-                            className={`text-xs px-3 py-1 rounded-full border transition ${
-                                autoRefresh
+                            className={`text-xs px-3 py-1 rounded-full border transition ${autoRefresh
                                     ? "border-cyan-500/30 text-cyan-400 bg-cyan-500/10"
                                     : "border-white/10 text-white/40"
-                            }`}
+                                }`}
                         >
                             {autoRefresh ? "Auto-refresh ON" : "Auto-refresh OFF"}
                         </button>
@@ -295,8 +294,8 @@ export default function InsightsPage() {
                             (live?.on_time_pct || 0) >= 80
                                 ? "green"
                                 : (live?.on_time_pct || 0) >= 60
-                                  ? "amber"
-                                  : "red"
+                                    ? "amber"
+                                    : "red"
                         }
                     />
                     <StatCard
@@ -353,8 +352,8 @@ export default function InsightsPage() {
                                                         v >= 70
                                                             ? "text-green-400"
                                                             : v >= 50
-                                                              ? "text-amber-400"
-                                                              : "text-red-400"
+                                                                ? "text-amber-400"
+                                                                : "text-red-400"
                                                     }
                                                 >
                                                     {Math.round(v)}/100
