@@ -6,10 +6,9 @@ generating specific actionable interventions with one-click approve.
 
 from __future__ import annotations
 
-from dataclasses import asdict
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from backend.services.intervention_engine import (
@@ -87,12 +86,12 @@ async def update_intervention(
     and records it in the intervention history.
     """
     if body.action not in ("approve", "dismiss"):
-        return {"error": "Action must be 'approve' or 'dismiss'"}
+        raise HTTPException(status_code=400, detail="Action must be 'approve' or 'dismiss'")
 
     result = await action_intervention(intervention_id, body.action)
 
     if result is None:
-        return {"error": "Intervention not found", "id": intervention_id}
+        raise HTTPException(status_code=404, detail=f"Intervention {intervention_id} not found")
 
     return {
         "data": result,

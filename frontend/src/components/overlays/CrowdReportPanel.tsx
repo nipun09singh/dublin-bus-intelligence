@@ -31,12 +31,11 @@ export default function CrowdReportPanel() {
     const handleReport = useCallback(
         async (level: CrowdLevel) => {
             if (!vehicle) return;
-            setSubmitted(level);
             setRippleKey((k) => k + 1);
 
             // POST to the crowd report API
             try {
-                await fetch(`${API_URL}/crowding/report`, {
+                const resp = await fetch(`${API_URL}/crowding/report`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -48,8 +47,10 @@ export default function CrowdReportPanel() {
                         longitude: vehicle.longitude,
                     }),
                 });
-            } catch {
-                console.error("[BusIQ] Failed to submit crowd report");
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                setSubmitted(level);
+            } catch (err) {
+                console.error("[BusIQ] Failed to submit crowd report", err);
             }
 
             // Reset after feedback animation

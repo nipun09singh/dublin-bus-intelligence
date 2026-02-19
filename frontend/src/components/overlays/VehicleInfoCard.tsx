@@ -29,20 +29,19 @@ export default function VehicleInfoCard() {
     const vehicle = useBusStore((s) => s.selectedVehicle);
     const selectVehicle = useBusStore((s) => s.selectVehicle);
 
-    if (!vehicle) return null;
-
-    const status = getDelayStatus(vehicle.delay_seconds);
+    const status = vehicle ? getDelayStatus(vehicle.delay_seconds) : "on-time";
     const statusColor = DELAY_COLORS[status];
     const statusLabel = DELAY_LABELS[status];
 
-    const ageSeconds = Math.round(
-        (Date.now() - new Date(vehicle.timestamp).getTime()) / 1000
-    );
+    const ageSeconds = vehicle
+        ? Math.round((Date.now() - new Date(vehicle.timestamp).getTime()) / 1000)
+        : 0;
     const ageDisplay =
         ageSeconds < 60 ? `${ageSeconds}s ago` : `${Math.round(ageSeconds / 60)}m ago`;
 
     return (
         <AnimatePresence>
+            {vehicle && (
             <motion.div
                 key={vehicle.vehicle_id}
                 initial={{ opacity: 0, x: 20, scale: 0.95 }}
@@ -176,6 +175,7 @@ export default function VehicleInfoCard() {
                     )}
                 </div>
             </motion.div>
+            )}
         </AnimatePresence>
     );
 }

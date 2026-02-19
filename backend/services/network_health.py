@@ -245,7 +245,7 @@ async def calculate_network_health() -> NetworkHealthReport:
             route_vehicles.setdefault(rid, []).append(v)
 
     route_healths: list[RouteHealth] = []
-    bunching_by_route = {a.route_id: a.total_pairs if hasattr(a, 'total_pairs') else a.pair_count for a in bunching.alerts}
+    bunching_by_route = {a.route_id: a.pair_count for a in bunching.alerts}
     crowding_by_route = {s.route_id: s.avg_score for s in crowding.route_summaries}
 
     for rid, rvehicles in route_vehicles.items():

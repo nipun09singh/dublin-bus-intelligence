@@ -263,13 +263,15 @@ def _generate_deploy_interventions(ghosts: GhostBusReport) -> list[Intervention]
     now = datetime.now(timezone.utc)
 
     for ghost_route in ghosts.ghost_routes[:10]:  # Cap at top 10
-        # Use route's approximate centre (first stop if available)
+        # Use route shape midpoint for location (much better than random stop)
         route_lat, route_lon = 53.3498, -6.2603  # Dublin centre default
-        
-        # Try to find a stop on this route for better location
-        for stop_id, (name, slat, slon) in gtfs_static.stop_map.items():
-            route_lat, route_lon = slat, slon
-            break
+        shape_ids = gtfs_static.route_shapes.get(ghost_route.route_id, set())
+        for sid in shape_ids:
+            coords = gtfs_static.shape_map.get(sid, [])
+            if coords:
+                mid = coords[len(coords) // 2]
+                route_lat, route_lon = mid[0], mid[1]
+                break
 
         depot = _nearest_depot(route_lat, route_lon)
         deploy_time_min = max(5, depot["distance_m"] // 500)  # rough: 30 km/h avg
@@ -489,7 +491,7 @@ async def action_intervention(intervention_id: str, action: str) -> dict | None:
             continue
 
         if intv.get("id") == intervention_id:
-            intv["status"] = action + "d"  # "approved" or "dismissed"
+            intv["status"] = "approved" if action == "approve" else "dismissed"
             intv["actioned_at"] = datetime.now(timezone.utc).isoformat()
 
             # Update in list
