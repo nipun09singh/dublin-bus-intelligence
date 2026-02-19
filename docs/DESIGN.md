@@ -491,19 +491,28 @@ CREATE INDEX idx_vp_geom ON vehicle_positions USING GIST (geom);
 - [x] Responsive: desktop Nerve Centre → mobile bottom sheet
 - [ ] Demo sequence choreography (scripted 3-min walkthrough) *(deferred → Phase 6)*
 
-### Phase 3 — Predictive Engine
-- [ ] Feature engineering pipeline (time, weather, day-type, stop sequence, historical delay)
-- [ ] LightGBM arrival predictor — train + evaluate
-- [ ] ONNX export + FastAPI serving endpoint
-- [ ] A/B comparison: our predictions vs. GTFS-RT official
-- [ ] Ghost bus detection logic
-- [ ] Bunching detection + alerting
+### Phase 3 — Predictive Engine ✅
+- [x] Heuristic ETA predictor (v1: distance + speed + delay adjustment, no ML yet)
+- [x] ETA prediction API: `GET /api/v1/predictions/eta/{stop_id}?route_id=`
+- [ ] Feature engineering pipeline (time, weather, day-type, stop sequence, historical delay) *(needs historical data)*
+- [ ] LightGBM arrival predictor — train + evaluate *(needs historical data)*
+- [ ] ONNX export + FastAPI serving endpoint *(v2, after LightGBM trained)*
+- [ ] A/B comparison: our predictions vs. GTFS-RT official *(needs historical data)*
+- [x] Ghost bus detection service + API: `GET /api/v1/predictions/ghosts`
+- [x] Ghost bus panel (frontend, optimise mode — signal-lost + dead routes)
+- [x] Bunching detection service + API: `GET /api/v1/predictions/bunching`
+- [x] Bunching alert panel (frontend, optimise mode — severity badges)
 
-### Phase 4 — Collaboration & Crowdsourcing
-- [ ] Crowding report UI (single-tap)
-- [ ] Accessibility issue reporter
-- [ ] Aggregation + display on map
-- [ ] Community pulse feed
+### Phase 4 — Collaboration & Crowdsourcing ✅
+- [x] Crowd report API: `POST /api/v1/crowding/report` (Redis-backed, 1hr TTL)
+- [x] Crowding snapshot API: `GET /api/v1/crowding/snapshot` (per-route aggregation)
+- [x] Recent reports API: `GET /api/v1/crowding/recent` (community feed)
+- [x] Vehicle crowding API: `GET /api/v1/crowding/vehicle/{vehicle_id}`
+- [x] CrowdReportPanel: one-tap POST to API (collab mode)
+- [x] CommunityPulse: scrolling feed of anonymised reports (collab mode)
+- [x] Crowd reports streamed via WebSocket pub/sub channel
+- [ ] Accessibility issue reporter *(deferred — needs moderation queue)*
+- [ ] Sentiment aurora overlay *(deferred → Phase 6 polish)*
 
 ### Phase 5 — Smart Cities & Multimodal
 - [ ] Dublin Bikes integration

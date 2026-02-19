@@ -4,6 +4,9 @@ import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBusStore } from "@/lib/store";
 
+const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
 const CROWDING_OPTIONS = [
     { level: "empty", emoji: "🟢", label: "Empty", description: "Plenty of seats" },
     { level: "seats", emoji: "🟡", label: "Seats", description: "Some seats left" },
@@ -18,7 +21,7 @@ type CrowdLevel = (typeof CROWDING_OPTIONS)[number]["level"];
  *
  * When a bus is selected in 'collab' mode, this panel appears
  * with 4 crowding buttons. Tap to report. Ripple animation on submit.
- * Glass Rail design: translucent dark panel matching the system.
+ * Reports are POSTed to /api/v1/crowding/report and streamed via WebSocket.
  */
 export default function CrowdReportPanel() {
     const vehicle = useBusStore((s) => s.selectedVehicle);
@@ -26,15 +29,28 @@ export default function CrowdReportPanel() {
     const [rippleKey, setRippleKey] = useState(0);
 
     const handleReport = useCallback(
-        (level: CrowdLevel) => {
+        async (level: CrowdLevel) => {
             if (!vehicle) return;
             setSubmitted(level);
             setRippleKey((k) => k + 1);
 
-            // In production, this would POST to the API
-            console.log(
-                `[BusIQ] Crowd report: bus ${vehicle.vehicle_id} route ${vehicle.route_short_name} → ${level}`
-            );
+            // POST to the crowd report API
+            try {
+                await fetch(`${API_URL}/crowding/report`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        vehicle_id: vehicle.vehicle_id,
+                        route_id: vehicle.route_id,
+                        route_short_name: vehicle.route_short_name,
+                        crowding_level: level,
+                        latitude: vehicle.latitude,
+                        longitude: vehicle.longitude,
+                    }),
+                });
+            } catch {
+                console.error("[BusIQ] Failed to submit crowd report");
+            }
 
             // Reset after feedback animation
             setTimeout(() => setSubmitted(null), 2500);

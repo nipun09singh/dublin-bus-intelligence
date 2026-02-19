@@ -11,6 +11,9 @@ import PillarRail from "@/components/overlays/PillarRail";
 import VehicleInfoCard from "@/components/overlays/VehicleInfoCard";
 import RouteHoverCard from "@/components/overlays/RouteHoverCard";
 import CrowdReportPanel from "@/components/overlays/CrowdReportPanel";
+import GhostBusPanel from "@/components/overlays/GhostBusPanel";
+import BunchingAlertPanel from "@/components/overlays/BunchingAlertPanel";
+import CommunityPulse from "@/components/overlays/CommunityPulse";
 import VehicleMarkerLayer from "@/components/layers/VehicleMarkerLayer";
 import RouteShapeLayer from "@/components/layers/RouteShapeLayer";
 import StopLayer from "@/components/layers/StopLayer";
@@ -175,6 +178,15 @@ export default function NerveCentre() {
 
             {/* Collaboration: Crowd report panel (collab mode + selected bus) */}
             {activeMode === "collab" && <CrowdReportPanel />}
+
+            {/* Collaboration: Community pulse feed (collab mode) */}
+            {activeMode === "collab" && <CommunityPulse />}
+
+            {/* Optimise: Ghost bus panel */}
+            {activeMode === "optimise" && <GhostBusPanel />}
+
+            {/* Optimise: Bunching alert panel */}
+            {activeMode === "optimise" && <BunchingAlertPanel />}
 
             {/* Connection status indicator */}
             <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 flex items-center gap-2">
